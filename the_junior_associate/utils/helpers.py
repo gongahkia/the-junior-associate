@@ -74,7 +74,7 @@ def sanitize_text(text: str) -> str:
 
     # Normalize quotes
     text = re.sub(r'["""]', '"', text)
-    text = re.sub(r'[''']', "'", text)
+    text = re.sub(r"[''']", "'", text)
 
     # Clean up multiple spaces again after replacements
     text = re.sub(r'\s+', ' ', text).strip()
