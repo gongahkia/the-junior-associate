@@ -39,7 +39,7 @@ class HKLIIScraper(BaseScraper):
         end_date: Union[str, datetime] = None,
         court: str = None,
         limit: int = 100,
-        **kwargs
+        **kwargs,
     ) -> List[CaseData]:
         """
         Search for cases on HKLII.
@@ -68,29 +68,27 @@ class HKLIIScraper(BaseScraper):
         params = self.validate_search_params(start_date, end_date, limit)
 
         # Build search parameters for HKLII
-        search_params = {
-            'method': 'boolean'
-        }
+        search_params = {"method": "boolean"}
 
         if query:
-            search_params['query'] = query
+            search_params["query"] = query
 
-        if params.get('start_date'):
-            search_params['dfrom'] = params['start_date'].strftime('%d/%m/%Y')
+        if params.get("start_date"):
+            search_params["dfrom"] = params["start_date"].strftime("%d/%m/%Y")
 
-        if params.get('end_date'):
-            search_params['dto'] = params['end_date'].strftime('%d/%m/%Y')
+        if params.get("end_date"):
+            search_params["dto"] = params["end_date"].strftime("%d/%m/%Y")
 
         if court:
-            search_params['court'] = court
+            search_params["court"] = court
 
         # Language preference
-        language = kwargs.get('language', 'en')
-        if language in ['en', 'zh']:
-            search_params['language'] = language
+        language = kwargs.get("language", "en")
+        if language in ["en", "zh"]:
+            search_params["language"] = language
 
         # Set results limit
-        search_params['results'] = min(params.get('limit', 100), 200)
+        search_params["results"] = min(params.get("limit", 100), 200)
 
         # Make request to search page
         url = f"{self.base_url}/cgi-bin/sinodisp/hk/cases/hkcfa/"
@@ -105,9 +103,9 @@ class HKLIIScraper(BaseScraper):
         cases = []
 
         # Look for case links in search results
-        case_links = soup.find_all('a', href=re.compile(r'/hk/cases/'))
+        case_links = soup.find_all("a", href=re.compile(r"/hk/cases/"))
 
-        for link in case_links[:params.get('limit', 100)]:
+        for link in case_links[: params.get("limit", 100)]:
             try:
                 case_data = self._parse_search_result_link(link)
                 if case_data:
@@ -137,9 +135,9 @@ class HKLIIScraper(BaseScraper):
             raise ValueError("Case ID is required")
 
         # Determine URL format
-        if case_id.startswith('http'):
+        if case_id.startswith("http"):
             url = case_id
-        elif case_id.startswith('hk/cases/'):
+        elif case_id.startswith("hk/cases/"):
             url = f"{self.base_url}/{case_id}.html"
         else:
             # Try searching for the citation
@@ -160,15 +158,15 @@ class HKLIIScraper(BaseScraper):
         """Parse a search result link into CaseData."""
         try:
             case_name = sanitize_text(link.get_text())
-            case_url = link.get('href')
+            case_url = link.get("href")
 
-            if case_url and not case_url.startswith('http'):
+            if case_url and not case_url.startswith("http"):
                 case_url = f"{self.base_url}{case_url}"
 
             # Extract case ID from URL
             case_id = ""
             if case_url:
-                case_id_match = re.search(r'/hk/cases/([^/]+/\d+/\d+)', case_url)
+                case_id_match = re.search(r"/hk/cases/([^/]+/\d+/\d+)", case_url)
                 if case_id_match:
                     case_id = f"hk/cases/{case_id_match.group(1)}"
 
@@ -178,9 +176,7 @@ class HKLIIScraper(BaseScraper):
                 case_id=case_id,
                 url=case_url,
                 jurisdiction=self.jurisdiction,
-                metadata={
-                    'source': 'HKLII'
-                }
+                metadata={"source": "HKLII"},
             )
 
         except Exception as e:
@@ -192,13 +188,13 @@ class HKLIIScraper(BaseScraper):
         try:
             # Extract case name from title or heading
             case_name = ""
-            title_elem = soup.find('title')
+            title_elem = soup.find("title")
             if title_elem:
                 case_name = sanitize_text(title_elem.get_text())
 
             # Try h1 if title doesn't work
             if not case_name:
-                h1_elem = soup.find('h1')
+                h1_elem = soup.find("h1")
                 if h1_elem:
                     case_name = sanitize_text(h1_elem.get_text())
 
@@ -209,9 +205,9 @@ class HKLIIScraper(BaseScraper):
 
             # Look for court information
             court_patterns = [
-                r'(Court of Final Appeal|Court of Appeal|Court of First Instance)',
-                r'(CFA|CA|CFI|DC|MC)',
-                r'(High Court|District Court|Magistrates|Tribunal)'
+                r"(Court of Final Appeal|Court of Appeal|Court of First Instance)",
+                r"(CFA|CA|CFI|DC|MC)",
+                r"(High Court|District Court|Magistrates|Tribunal)",
             ]
 
             page_text = soup.get_text()
@@ -223,9 +219,9 @@ class HKLIIScraper(BaseScraper):
 
             # Look for date patterns
             date_patterns = [
-                r'(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})',
-                r'(\d{4}-\d{2}-\d{2})',
-                r'(\d{1,2}/\d{1,2}/\d{4})'
+                r"(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})",
+                r"(\d{4}-\d{2}-\d{2})",
+                r"(\d{1,2}/\d{1,2}/\d{4})",
             ]
 
             for pattern in date_patterns:
@@ -234,21 +230,21 @@ class HKLIIScraper(BaseScraper):
                     try:
                         # Try different date formats
                         date_str = date_matches[0]
-                        if '-' in date_str:
-                            case_date = datetime.strptime(date_str, '%Y-%m-%d')
-                        elif '/' in date_str:
-                            case_date = datetime.strptime(date_str, '%d/%m/%Y')
+                        if "-" in date_str:
+                            case_date = datetime.strptime(date_str, "%Y-%m-%d")
+                        elif "/" in date_str:
+                            case_date = datetime.strptime(date_str, "%d/%m/%Y")
                         else:
-                            case_date = datetime.strptime(date_str, '%d %B %Y')
+                            case_date = datetime.strptime(date_str, "%d %B %Y")
                         break
                     except ValueError:
                         continue
 
             # Extract citations
             citation_patterns = [
-                r'\[(\d{4})\]\s+(HKCFA|HKCA|HKCFI)\s+(\d+)',
-                r'(\d{4})\s+(HKCFA|HKCA|HKCFI)\s+(\d+)',
-                r'\[(\d{4})\]\s+(\d+)\s+(HKC|HKLRD)'
+                r"\[(\d{4})\]\s+(HKCFA|HKCA|HKCFI)\s+(\d+)",
+                r"(\d{4})\s+(HKCFA|HKCA|HKCFI)\s+(\d+)",
+                r"\[(\d{4})\]\s+(\d+)\s+(HKC|HKLRD)",
             ]
 
             for pattern in citation_patterns:
@@ -261,18 +257,15 @@ class HKLIIScraper(BaseScraper):
             # Extract full text content
             full_text = ""
             # Look for main content area
-            content_selectors = [
-                'div.judgment',
-                'div.content',
-                'div#main',
-                'body'
-            ]
+            content_selectors = ["div.judgment", "div.content", "div#main", "body"]
 
             for selector in content_selectors:
                 content_div = soup.select_one(selector)
                 if content_div:
                     # Remove navigation and other non-content elements
-                    for unwanted in content_div.find_all(['nav', 'header', 'footer', 'script', 'style']):
+                    for unwanted in content_div.find_all(
+                        ["nav", "header", "footer", "script", "style"]
+                    ):
                         unwanted.decompose()
                     full_text = sanitize_text(content_div.get_text())
                     break
@@ -280,26 +273,36 @@ class HKLIIScraper(BaseScraper):
             # Extract judges
             judges = []
             judge_patterns = [
-                r'(?:Mr|Mrs|Ms)\s+Justice\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'(?:Chief Justice|CJ)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'([A-Z][a-z]+\s+(?:PJ|JA|J\.?))'
+                r"(?:Mr|Mrs|Ms)\s+Justice\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"(?:Chief Justice|CJ)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"([A-Z][a-z]+\s+(?:PJ|JA|J\.?))",
             ]
 
             for pattern in judge_patterns:
-                judge_matches = re.findall(pattern, full_text[:3000])  # Look in first part
-                judges.extend([match.replace(' PJ', '').replace(' JA', '').replace(' J.', '').replace(' J', '') for match in judge_matches])
+                judge_matches = re.findall(
+                    pattern, full_text[:3000]
+                )  # Look in first part
+                judges.extend(
+                    [
+                        match.replace(" PJ", "")
+                        .replace(" JA", "")
+                        .replace(" J.", "")
+                        .replace(" J", "")
+                        for match in judge_matches
+                    ]
+                )
 
             judges = list(set(judges[:5]))  # Limit and dedupe
 
             # Extract case ID from URL
             case_id = ""
-            case_id_match = re.search(r'/hk/cases/([^/]+/\d+/\d+)', url)
+            case_id_match = re.search(r"/hk/cases/([^/]+/\d+/\d+)", url)
             if case_id_match:
                 case_id = f"hk/cases/{case_id_match.group(1)}"
 
             # Extract parties
             parties = []
-            party_pattern = r'([A-Z][a-z\s]+(?:Limited|Ltd)?)\s+v\.\s+([A-Z][a-z\s]+(?:Limited|Ltd)?)'
+            party_pattern = r"([A-Z][a-z\s]+(?:Limited|Ltd)?)\s+v\.\s+([A-Z][a-z\s]+(?:Limited|Ltd)?)"
             party_matches = re.findall(party_pattern, case_name)
             if party_matches:
                 for match in party_matches[0]:
@@ -317,9 +320,7 @@ class HKLIIScraper(BaseScraper):
                 parties=parties,
                 citations=citations,
                 jurisdiction=self.jurisdiction,
-                metadata={
-                    'source': 'HKLII'
-                }
+                metadata={"source": "HKLII"},
             )
 
         except Exception as e:
@@ -353,7 +354,7 @@ def search_cases(
     start_date: Union[str, datetime] = None,
     end_date: Union[str, datetime] = None,
     court: str = None,
-    limit: int = 100
+    limit: int = 100,
 ) -> List[CaseData]:
     """
     Search for cases on HKLII.
@@ -378,5 +379,5 @@ def search_cases(
             start_date=start_date,
             end_date=end_date,
             court=court,
-            limit=limit
+            limit=limit,
         )

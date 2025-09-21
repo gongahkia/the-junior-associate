@@ -39,7 +39,7 @@ class CourtListenerScraper(BaseScraper):
         end_date: Optional[Union[str, datetime]] = None,
         court: Optional[str] = None,
         limit: int = 100,
-        **kwargs
+        **kwargs,
     ) -> List[CaseData]:
         """
         Search for cases on CourtListener.
@@ -69,28 +69,28 @@ class CourtListenerScraper(BaseScraper):
 
         # Build search parameters
         search_params = {
-            'format': 'json',
-            'order_by': '-date_filed',
+            "format": "json",
+            "order_by": "-date_filed",
         }
 
         if query:
-            search_params['q'] = query
+            search_params["q"] = query
 
-        if params.get('start_date'):
-            search_params['filed_after'] = params['start_date'].strftime('%Y-%m-%d')
+        if params.get("start_date"):
+            search_params["filed_after"] = params["start_date"].strftime("%Y-%m-%d")
 
-        if params.get('end_date'):
-            search_params['filed_before'] = params['end_date'].strftime('%Y-%m-%d')
+        if params.get("end_date"):
+            search_params["filed_before"] = params["end_date"].strftime("%Y-%m-%d")
 
         if court:
-            search_params['court'] = court
+            search_params["court"] = court
 
-        if params.get('limit'):
-            search_params['count'] = min(params['limit'], 1000)
+        if params.get("limit"):
+            search_params["count"] = min(params["limit"], 1000)
 
         # Additional search parameters
         for key, value in kwargs.items():
-            if key in ['judge', 'case_name', 'citation', 'status'] and value:
+            if key in ["judge", "case_name", "citation", "status"] and value:
                 search_params[key] = value
 
         # Make API request
@@ -104,7 +104,7 @@ class CourtListenerScraper(BaseScraper):
 
         # Parse results
         cases = []
-        results = data.get('results', [])
+        results = data.get("results", [])
 
         for item in results:
             try:
@@ -139,7 +139,7 @@ class CourtListenerScraper(BaseScraper):
         url = f"{self.base_url}/api/rest/v3/opinions/{case_id}/"
 
         try:
-            response = self._make_request(url, params={'format': 'json'})
+            response = self._make_request(url, params={"format": "json"})
             data = response.json()
             return self._parse_opinion_detail(data)
         except Exception as e:
@@ -149,7 +149,7 @@ class CourtListenerScraper(BaseScraper):
         url = f"{self.base_url}/api/rest/v3/clusters/{case_id}/"
 
         try:
-            response = self._make_request(url, params={'format': 'json'})
+            response = self._make_request(url, params={"format": "json"})
             data = response.json()
             return self._parse_cluster_detail(data)
         except Exception as e:
@@ -157,10 +157,7 @@ class CourtListenerScraper(BaseScraper):
             return None
 
     def get_recent_cases(
-        self,
-        days: int = 30,
-        limit: int = 100,
-        court: str = None
+        self, days: int = 30, limit: int = 100, court: str = None
     ) -> List[CaseData]:
         """
         Get recent cases from CourtListener.
@@ -178,66 +175,61 @@ class CourtListenerScraper(BaseScraper):
             >>> recent = scraper.get_recent_cases(days=7, court="scotus")
         """
         from datetime import timedelta
+
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
 
         return self.search_cases(
-            start_date=start_date,
-            end_date=end_date,
-            limit=limit,
-            court=court
+            start_date=start_date, end_date=end_date, limit=limit, court=court
         )
 
     def _parse_search_result(self, item: Dict[str, Any]) -> Optional[CaseData]:
         """Parse a search result item into CaseData."""
         try:
             # Extract basic information
-            case_name = sanitize_text(item.get('caseName', ''))
+            case_name = sanitize_text(item.get("caseName", ""))
             if not case_name:
                 return None
 
             # Parse date
             date_filed = None
-            if item.get('dateFiled'):
+            if item.get("dateFiled"):
                 try:
-                    date_filed = datetime.strptime(item['dateFiled'], '%Y-%m-%d')
+                    date_filed = datetime.strptime(item["dateFiled"], "%Y-%m-%d")
                 except ValueError:
                     pass
 
             # Extract court information
-            court_name = sanitize_text(item.get('court', ''))
+            court_name = sanitize_text(item.get("court", ""))
 
             # Build case URL
             case_url = None
-            if item.get('absolute_url'):
+            if item.get("absolute_url"):
                 case_url = f"{self.base_url}{item['absolute_url']}"
 
             # Extract citations
             citations = []
-            if item.get('citation'):
-                citations = [item['citation']]
+            if item.get("citation"):
+                citations = [item["citation"]]
 
             # Extract judges
             judges = []
-            if item.get('judge'):
-                judges = [sanitize_text(item['judge'])]
+            if item.get("judge"):
+                judges = [sanitize_text(item["judge"])]
 
             # Create CaseData object
             return CaseData(
                 case_name=case_name,
-                case_id=str(item.get('id', '')),
+                case_id=str(item.get("id", "")),
                 court=court_name,
                 date=date_filed,
                 url=case_url,
-                summary=sanitize_text(item.get('snippet', '')),
+                summary=sanitize_text(item.get("snippet", "")),
                 judges=judges,
                 citations=citations,
                 jurisdiction=self.jurisdiction,
-                case_type=sanitize_text(item.get('status', '')),
-                metadata={
-                    'source': 'CourtListener',
-                    'api_data': item
-                }
+                case_type=sanitize_text(item.get("status", "")),
+                metadata={"source": "CourtListener", "api_data": item},
             )
 
         except Exception as e:
@@ -248,30 +240,32 @@ class CourtListenerScraper(BaseScraper):
         """Parse detailed opinion data into CaseData."""
         try:
             # Get cluster information
-            cluster_url = data.get('cluster')
+            cluster_url = data.get("cluster")
             if cluster_url:
                 # Fetch cluster details
-                response = self._make_request(cluster_url, params={'format': 'json'})
+                response = self._make_request(cluster_url, params={"format": "json"})
                 cluster_data = response.json()
 
-                case_name = sanitize_text(cluster_data.get('case_name', ''))
+                case_name = sanitize_text(cluster_data.get("case_name", ""))
 
                 # Parse date
                 date_filed = None
-                if cluster_data.get('date_filed'):
+                if cluster_data.get("date_filed"):
                     try:
-                        date_filed = datetime.strptime(cluster_data['date_filed'], '%Y-%m-%d')
+                        date_filed = datetime.strptime(
+                            cluster_data["date_filed"], "%Y-%m-%d"
+                        )
                     except ValueError:
                         pass
 
                 # Extract court
-                court_name = sanitize_text(cluster_data.get('court', ''))
+                court_name = sanitize_text(cluster_data.get("court", ""))
 
                 # Extract citations
                 citations = []
-                for citation in cluster_data.get('citations', []):
+                for citation in cluster_data.get("citations", []):
                     if isinstance(citation, dict):
-                        cite_text = citation.get('cite', '')
+                        cite_text = citation.get("cite", "")
                     else:
                         cite_text = str(citation)
                     if cite_text:
@@ -279,21 +273,23 @@ class CourtListenerScraper(BaseScraper):
 
                 # Extract judges
                 judges = []
-                if cluster_data.get('judges'):
-                    for judge in cluster_data['judges']:
+                if cluster_data.get("judges"):
+                    for judge in cluster_data["judges"]:
                         if isinstance(judge, dict):
-                            judge_name = judge.get('name_full', '')
+                            judge_name = judge.get("name_full", "")
                         else:
                             judge_name = str(judge)
                         if judge_name:
                             judges.append(sanitize_text(judge_name))
 
                 # Get opinion text
-                full_text = sanitize_text(data.get('plain_text', '') or data.get('html', ''))
+                full_text = sanitize_text(
+                    data.get("plain_text", "") or data.get("html", "")
+                )
 
                 return CaseData(
                     case_name=case_name,
-                    case_id=str(data.get('id', '')),
+                    case_id=str(data.get("id", "")),
                     court=court_name,
                     date=date_filed,
                     url=f"{self.base_url}{cluster_data.get('absolute_url', '')}",
@@ -302,11 +298,11 @@ class CourtListenerScraper(BaseScraper):
                     citations=citations,
                     jurisdiction=self.jurisdiction,
                     metadata={
-                        'source': 'CourtListener',
-                        'cluster_id': cluster_data.get('id'),
-                        'opinion_type': data.get('type'),
-                        'api_data': data
-                    }
+                        "source": "CourtListener",
+                        "cluster_id": cluster_data.get("id"),
+                        "opinion_type": data.get("type"),
+                        "api_data": data,
+                    },
                 )
 
         except Exception as e:
@@ -316,26 +312,26 @@ class CourtListenerScraper(BaseScraper):
     def _parse_cluster_detail(self, data: Dict[str, Any]) -> Optional[CaseData]:
         """Parse cluster detail data into CaseData."""
         try:
-            case_name = sanitize_text(data.get('case_name', ''))
+            case_name = sanitize_text(data.get("case_name", ""))
             if not case_name:
                 return None
 
             # Parse date
             date_filed = None
-            if data.get('date_filed'):
+            if data.get("date_filed"):
                 try:
-                    date_filed = datetime.strptime(data['date_filed'], '%Y-%m-%d')
+                    date_filed = datetime.strptime(data["date_filed"], "%Y-%m-%d")
                 except ValueError:
                     pass
 
             # Extract court
-            court_name = sanitize_text(data.get('court', ''))
+            court_name = sanitize_text(data.get("court", ""))
 
             # Extract citations
             citations = []
-            for citation in data.get('citations', []):
+            for citation in data.get("citations", []):
                 if isinstance(citation, dict):
-                    cite_text = citation.get('cite', '')
+                    cite_text = citation.get("cite", "")
                 else:
                     cite_text = str(citation)
                 if cite_text:
@@ -343,10 +339,10 @@ class CourtListenerScraper(BaseScraper):
 
             # Extract judges
             judges = []
-            if data.get('judges'):
-                for judge in data['judges']:
+            if data.get("judges"):
+                for judge in data["judges"]:
                     if isinstance(judge, dict):
-                        judge_name = judge.get('name_full', '')
+                        judge_name = judge.get("name_full", "")
                     else:
                         judge_name = str(judge)
                     if judge_name:
@@ -354,19 +350,19 @@ class CourtListenerScraper(BaseScraper):
 
             return CaseData(
                 case_name=case_name,
-                case_id=str(data.get('id', '')),
+                case_id=str(data.get("id", "")),
                 court=court_name,
                 date=date_filed,
                 url=f"{self.base_url}{data.get('absolute_url', '')}",
-                summary=sanitize_text(data.get('headnotes', '')),
+                summary=sanitize_text(data.get("headnotes", "")),
                 judges=judges,
                 citations=citations,
                 jurisdiction=self.jurisdiction,
                 metadata={
-                    'source': 'CourtListener',
-                    'cluster_id': data.get('id'),
-                    'api_data': data
-                }
+                    "source": "CourtListener",
+                    "cluster_id": data.get("id"),
+                    "api_data": data,
+                },
             )
 
         except Exception as e:
@@ -376,9 +372,7 @@ class CourtListenerScraper(BaseScraper):
 
 # Convenience functions for backward compatibility and ease of use
 def fetch_recent_cases(
-    start_date: Union[str, datetime] = None,
-    limit: int = 100,
-    court: str = None
+    start_date: Union[str, datetime] = None, limit: int = 100, court: str = None
 ) -> List[CaseData]:
     """
     Fetch recent cases from CourtListener.
@@ -401,10 +395,7 @@ def fetch_recent_cases(
         if start_date:
             end_date = datetime.now()
             return scraper.search_cases(
-                start_date=start_date,
-                end_date=end_date,
-                limit=limit,
-                court=court
+                start_date=start_date, end_date=end_date, limit=limit, court=court
             )
         else:
             return scraper.get_recent_cases(days=30, limit=limit, court=court)
@@ -414,7 +405,7 @@ def search_cases(
     query: str,
     start_date: Union[str, datetime] = None,
     end_date: Union[str, datetime] = None,
-    limit: int = 100
+    limit: int = 100,
 ) -> List[CaseData]:
     """
     Search for cases on CourtListener.
@@ -434,10 +425,7 @@ def search_cases(
     """
     with CourtListenerScraper() as scraper:
         return scraper.search_cases(
-            query=query,
-            start_date=start_date,
-            end_date=end_date,
-            limit=limit
+            query=query, start_date=start_date, end_date=end_date, limit=limit
         )
 
 

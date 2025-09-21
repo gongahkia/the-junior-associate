@@ -23,6 +23,7 @@ class ScrapingError(Exception):
 
 class NetworkError(ScrapingError):
     """Raised when network-related errors occur during scraping."""
+
     pass
 
 
@@ -42,14 +43,17 @@ class RateLimitError(ScrapingError):
 
 class ParsingError(ScrapingError):
     """Raised when parsing content fails."""
+
     pass
 
 
 class AuthenticationError(ScrapingError):
     """Raised when authentication is required or fails."""
+
     pass
 
 
 class DataNotFoundError(ScrapingError):
     """Raised when expected data cannot be found."""
+
     pass

@@ -39,7 +39,7 @@ class BAILIIScraper(BaseScraper):
         end_date: Union[str, datetime] = None,
         court: str = None,
         limit: int = 100,
-        **kwargs
+        **kwargs,
     ) -> List[CaseData]:
         """
         Search for cases on BAILII.
@@ -68,29 +68,27 @@ class BAILIIScraper(BaseScraper):
         params = self.validate_search_params(start_date, end_date, limit)
 
         # Build search parameters for BAILII
-        search_params = {
-            'method': 'boolean'
-        }
+        search_params = {"method": "boolean"}
 
         if query:
-            search_params['query'] = query
+            search_params["query"] = query
 
-        if params.get('start_date'):
-            search_params['date_from'] = params['start_date'].strftime('%d/%m/%Y')
+        if params.get("start_date"):
+            search_params["date_from"] = params["start_date"].strftime("%d/%m/%Y")
 
-        if params.get('end_date'):
-            search_params['date_to'] = params['end_date'].strftime('%d/%m/%Y')
+        if params.get("end_date"):
+            search_params["date_to"] = params["end_date"].strftime("%d/%m/%Y")
 
         if court:
-            search_params['court'] = court
+            search_params["court"] = court
 
         # Jurisdiction filter
-        jurisdiction = kwargs.get('jurisdiction', 'uk')
-        if jurisdiction in ['uk', 'ie', 'ni', 'scot']:
-            search_params['jurisdiction'] = jurisdiction
+        jurisdiction = kwargs.get("jurisdiction", "uk")
+        if jurisdiction in ["uk", "ie", "ni", "scot"]:
+            search_params["jurisdiction"] = jurisdiction
 
         # Set results limit
-        search_params['results'] = min(params.get('limit', 100), 200)
+        search_params["results"] = min(params.get("limit", 100), 200)
 
         # Make request to search page
         url = f"{self.base_url}/cgi-bin/markup.cgi"
@@ -105,9 +103,9 @@ class BAILIIScraper(BaseScraper):
         cases = []
 
         # Look for case links in search results
-        case_links = soup.find_all('a', href=re.compile(r'/(uk|ie|ni|scot)/cases/'))
+        case_links = soup.find_all("a", href=re.compile(r"/(uk|ie|ni|scot)/cases/"))
 
-        for link in case_links[:params.get('limit', 100)]:
+        for link in case_links[: params.get("limit", 100)]:
             try:
                 case_data = self._parse_search_result_link(link)
                 if case_data:
@@ -137,9 +135,9 @@ class BAILIIScraper(BaseScraper):
             raise ValueError("Case ID is required")
 
         # Determine URL format
-        if case_id.startswith('http'):
+        if case_id.startswith("http"):
             url = case_id
-        elif case_id.startswith(('uk/cases/', 'ie/cases/', 'ni/cases/', 'scot/cases/')):
+        elif case_id.startswith(("uk/cases/", "ie/cases/", "ni/cases/", "scot/cases/")):
             url = f"{self.base_url}/{case_id}.html"
         else:
             # Try searching for the citation
@@ -160,25 +158,27 @@ class BAILIIScraper(BaseScraper):
         """Parse a search result link into CaseData."""
         try:
             case_name = sanitize_text(link.get_text())
-            case_url = link.get('href')
+            case_url = link.get("href")
 
-            if case_url and not case_url.startswith('http'):
+            if case_url and not case_url.startswith("http"):
                 case_url = f"{self.base_url}{case_url}"
 
             # Extract case ID from URL
             case_id = ""
             if case_url:
-                case_id_match = re.search(r'/(uk|ie|ni|scot)/cases/([^/]+/\d+/\d+)', case_url)
+                case_id_match = re.search(
+                    r"/(uk|ie|ni|scot)/cases/([^/]+/\d+/\d+)", case_url
+                )
                 if case_id_match:
                     case_id = f"{case_id_match.group(1)}/cases/{case_id_match.group(2)}"
 
             # Determine jurisdiction from URL
             jurisdiction = self.jurisdiction
-            if '/ie/cases/' in case_url:
+            if "/ie/cases/" in case_url:
                 jurisdiction = "Ireland"
-            elif '/ni/cases/' in case_url:
+            elif "/ni/cases/" in case_url:
                 jurisdiction = "Northern Ireland"
-            elif '/scot/cases/' in case_url:
+            elif "/scot/cases/" in case_url:
                 jurisdiction = "Scotland"
 
             # Basic case data from search result
@@ -187,9 +187,7 @@ class BAILIIScraper(BaseScraper):
                 case_id=case_id,
                 url=case_url,
                 jurisdiction=jurisdiction,
-                metadata={
-                    'source': 'BAILII'
-                }
+                metadata={"source": "BAILII"},
             )
 
         except Exception as e:
@@ -201,13 +199,13 @@ class BAILIIScraper(BaseScraper):
         try:
             # Extract case name from title or heading
             case_name = ""
-            title_elem = soup.find('title')
+            title_elem = soup.find("title")
             if title_elem:
                 case_name = sanitize_text(title_elem.get_text())
 
             # Try h1 if title doesn't work
             if not case_name:
-                h1_elem = soup.find('h1')
+                h1_elem = soup.find("h1")
                 if h1_elem:
                     case_name = sanitize_text(h1_elem.get_text())
 
@@ -218,9 +216,9 @@ class BAILIIScraper(BaseScraper):
 
             # Look for court information
             court_patterns = [
-                r'(Supreme Court|Court of Appeal|High Court|Crown Court|Magistrates|Employment Tribunal)',
-                r'(UKSC|EWCA|EWHC|UKUT|UKFTT)',
-                r'(House of Lords|Privy Council)'
+                r"(Supreme Court|Court of Appeal|High Court|Crown Court|Magistrates|Employment Tribunal)",
+                r"(UKSC|EWCA|EWHC|UKUT|UKFTT)",
+                r"(House of Lords|Privy Council)",
             ]
 
             page_text = soup.get_text()
@@ -232,9 +230,9 @@ class BAILIIScraper(BaseScraper):
 
             # Look for date patterns
             date_patterns = [
-                r'(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})',
-                r'(\d{4}-\d{2}-\d{2})',
-                r'(\d{1,2}/\d{1,2}/\d{4})'
+                r"(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})",
+                r"(\d{4}-\d{2}-\d{2})",
+                r"(\d{1,2}/\d{1,2}/\d{4})",
             ]
 
             for pattern in date_patterns:
@@ -243,22 +241,22 @@ class BAILIIScraper(BaseScraper):
                     try:
                         # Try different date formats
                         date_str = date_matches[0]
-                        if '-' in date_str:
-                            case_date = datetime.strptime(date_str, '%Y-%m-%d')
-                        elif '/' in date_str:
-                            case_date = datetime.strptime(date_str, '%d/%m/%Y')
+                        if "-" in date_str:
+                            case_date = datetime.strptime(date_str, "%Y-%m-%d")
+                        elif "/" in date_str:
+                            case_date = datetime.strptime(date_str, "%d/%m/%Y")
                         else:
-                            case_date = datetime.strptime(date_str, '%d %B %Y')
+                            case_date = datetime.strptime(date_str, "%d %B %Y")
                         break
                     except ValueError:
                         continue
 
             # Extract citations
             citation_patterns = [
-                r'\[(\d{4})\]\s+(UKSC|EWCA|EWHC|UKUT)\s+(\d+)',
-                r'(\d{4})\s+(UKSC|EWCA|EWHC|UKUT)\s+(\d+)',
-                r'\[(\d{4})\]\s+(\d+)\s+(WLR|All ER|AC|QB)',
-                r'(\d{4})\s+(\d+)\s+(WLR|All ER|AC|QB)'
+                r"\[(\d{4})\]\s+(UKSC|EWCA|EWHC|UKUT)\s+(\d+)",
+                r"(\d{4})\s+(UKSC|EWCA|EWHC|UKUT)\s+(\d+)",
+                r"\[(\d{4})\]\s+(\d+)\s+(WLR|All ER|AC|QB)",
+                r"(\d{4})\s+(\d+)\s+(WLR|All ER|AC|QB)",
             ]
 
             for pattern in citation_patterns:
@@ -271,18 +269,15 @@ class BAILIIScraper(BaseScraper):
             # Extract full text content
             full_text = ""
             # Look for main content area
-            content_selectors = [
-                'div.judgment',
-                'div.content',
-                'div#main',
-                'body'
-            ]
+            content_selectors = ["div.judgment", "div.content", "div#main", "body"]
 
             for selector in content_selectors:
                 content_div = soup.select_one(selector)
                 if content_div:
                     # Remove navigation and other non-content elements
-                    for unwanted in content_div.find_all(['nav', 'header', 'footer', 'script', 'style']):
+                    for unwanted in content_div.find_all(
+                        ["nav", "header", "footer", "script", "style"]
+                    ):
                         unwanted.decompose()
                     full_text = sanitize_text(content_div.get_text())
                     break
@@ -290,30 +285,37 @@ class BAILIIScraper(BaseScraper):
             # Extract judges
             judges = []
             judge_patterns = [
-                r'(?:Lord|Lady|Mr|Mrs|Ms)\s+Justice\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'(?:Lord|Lady)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'([A-Z][a-z]+\s+LJ)',
-                r'([A-Z][a-z]+\s+J\.?)'
+                r"(?:Lord|Lady|Mr|Mrs|Ms)\s+Justice\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"(?:Lord|Lady)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"([A-Z][a-z]+\s+LJ)",
+                r"([A-Z][a-z]+\s+J\.?)",
             ]
 
             for pattern in judge_patterns:
-                judge_matches = re.findall(pattern, full_text[:3000])  # Look in first part
-                judges.extend([match.replace(' LJ', '').replace(' J.', '').replace(' J', '') for match in judge_matches])
+                judge_matches = re.findall(
+                    pattern, full_text[:3000]
+                )  # Look in first part
+                judges.extend(
+                    [
+                        match.replace(" LJ", "").replace(" J.", "").replace(" J", "")
+                        for match in judge_matches
+                    ]
+                )
 
             judges = list(set(judges[:5]))  # Limit and dedupe
 
             # Determine jurisdiction from URL
             jurisdiction = self.jurisdiction
-            if '/ie/cases/' in url:
+            if "/ie/cases/" in url:
                 jurisdiction = "Ireland"
-            elif '/ni/cases/' in url:
+            elif "/ni/cases/" in url:
                 jurisdiction = "Northern Ireland"
-            elif '/scot/cases/' in url:
+            elif "/scot/cases/" in url:
                 jurisdiction = "Scotland"
 
             # Extract case ID from URL
             case_id = ""
-            case_id_match = re.search(r'/(uk|ie|ni|scot)/cases/([^/]+/\d+/\d+)', url)
+            case_id_match = re.search(r"/(uk|ie|ni|scot)/cases/([^/]+/\d+/\d+)", url)
             if case_id_match:
                 case_id = f"{case_id_match.group(1)}/cases/{case_id_match.group(2)}"
 
@@ -327,9 +329,7 @@ class BAILIIScraper(BaseScraper):
                 judges=judges,
                 citations=citations,
                 jurisdiction=jurisdiction,
-                metadata={
-                    'source': 'BAILII'
-                }
+                metadata={"source": "BAILII"},
             )
 
         except Exception as e:
@@ -363,7 +363,7 @@ def search_cases(
     start_date: Union[str, datetime] = None,
     end_date: Union[str, datetime] = None,
     court: str = None,
-    limit: int = 100
+    limit: int = 100,
 ) -> List[CaseData]:
     """
     Search for cases on BAILII.
@@ -388,5 +388,5 @@ def search_cases(
             start_date=start_date,
             end_date=end_date,
             court=court,
-            limit=limit
+            limit=limit,
         )

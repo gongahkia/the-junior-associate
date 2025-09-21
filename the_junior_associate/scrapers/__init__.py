@@ -10,7 +10,7 @@ from .bailii import BAILIIScraper
 from .singapore_judiciary import SingaporeJudiciaryScraper
 from .indian_kanoon import IndianKanoonScraper
 from .hklii import HKLIIScraper
-from .legifrance import LegiFranceScraper
+from .legifrance import LegifranceScraper
 from .german_law_archive import GermanLawArchiveScraper
 from .curia_europa import CuriaEuropaScraper
 from .worldlii import WorldLIIScraper
@@ -29,7 +29,7 @@ __all__ = [
     "SingaporeJudiciaryScraper",
     "IndianKanoonScraper",
     "HKLIIScraper",
-    "LegiFranceScraper",
+    "LegifranceScraper",
     "GermanLawArchiveScraper",
     "CuriaEuropaScraper",
     "WorldLIIScraper",

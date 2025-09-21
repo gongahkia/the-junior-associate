@@ -9,7 +9,9 @@ License: MIT
 __version__ = "1.0.0"
 __author__ = "The Junior Associate Contributors"
 __email__ = "contributors@thejuniorassociate.org"
-__description__ = "A polished Python library for scraping legal case law from multiple jurisdictions"
+__description__ = (
+    "A polished Python library for scraping legal case law from multiple jurisdictions"
+)
 
 from .scrapers import (
     CourtListenerScraper,
@@ -20,7 +22,7 @@ from .scrapers import (
     SingaporeJudiciaryScraper,
     IndianKanoonScraper,
     HKLIIScraper,
-    LegiFranceScraper,
+    LegifranceScraper,
     GermanLawArchiveScraper,
     CuriaEuropaScraper,
     WorldLIIScraper,
@@ -37,6 +39,7 @@ from .utils import (
     RateLimitError,
     ParsingError,
     NetworkError,
+    DataNotFoundError,
     validate_date,
     sanitize_text,
     setup_logger,
@@ -52,7 +55,7 @@ __all__ = [
     "SingaporeJudiciaryScraper",
     "IndianKanoonScraper",
     "HKLIIScraper",
-    "LegiFranceScraper",
+    "LegifranceScraper",
     "GermanLawArchiveScraper",
     "CuriaEuropaScraper",
     "WorldLIIScraper",
@@ -67,6 +70,7 @@ __all__ = [
     "RateLimitError",
     "ParsingError",
     "NetworkError",
+    "DataNotFoundError",
     "validate_date",
     "sanitize_text",
     "setup_logger",

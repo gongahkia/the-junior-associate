@@ -38,7 +38,7 @@ class WorldCourtsScraper(BaseScraper):
         end_date: Union[str, datetime] = None,
         court: str = None,
         limit: int = 100,
-        **kwargs
+        **kwargs,
     ) -> List[CaseData]:
         """
         Search for cases on WorldCourts.
@@ -70,24 +70,24 @@ class WorldCourtsScraper(BaseScraper):
         search_params = {}
 
         if query:
-            search_params['q'] = query
+            search_params["q"] = query
 
-        if params.get('start_date'):
-            search_params['start_date'] = params['start_date'].strftime('%Y-%m-%d')
+        if params.get("start_date"):
+            search_params["start_date"] = params["start_date"].strftime("%Y-%m-%d")
 
-        if params.get('end_date'):
-            search_params['end_date'] = params['end_date'].strftime('%Y-%m-%d')
+        if params.get("end_date"):
+            search_params["end_date"] = params["end_date"].strftime("%Y-%m-%d")
 
         if court:
-            search_params['court'] = court
+            search_params["court"] = court
 
         # Document type filter
-        document_type = kwargs.get('document_type')
+        document_type = kwargs.get("document_type")
         if document_type:
-            search_params['doc_type'] = document_type
+            search_params["doc_type"] = document_type
 
         # Set results limit
-        search_params['limit'] = min(params.get('limit', 100), 200)
+        search_params["limit"] = min(params.get("limit", 100), 200)
 
         # Make request to search page
         url = f"{self.base_url}/search"
@@ -102,9 +102,9 @@ class WorldCourtsScraper(BaseScraper):
         cases = []
 
         # Look for case links in search results
-        case_links = soup.find_all('a', href=re.compile(r'/(inst|cases)/.+'))
+        case_links = soup.find_all("a", href=re.compile(r"/(inst|cases)/.+"))
 
-        for link in case_links[:params.get('limit', 100)]:
+        for link in case_links[: params.get("limit", 100)]:
             try:
                 case_data = self._parse_search_result_link(link)
                 if case_data:
@@ -134,9 +134,9 @@ class WorldCourtsScraper(BaseScraper):
             raise ValueError("Case ID is required")
 
         # Determine URL format
-        if case_id.startswith('http'):
+        if case_id.startswith("http"):
             url = case_id
-        elif case_id.startswith(('inst/', 'cases/')):
+        elif case_id.startswith(("inst/", "cases/")):
             url = f"{self.base_url}/{case_id}"
         else:
             # Try searching for the case
@@ -157,34 +157,40 @@ class WorldCourtsScraper(BaseScraper):
         """Parse a search result link into CaseData."""
         try:
             case_name = sanitize_text(link.get_text())
-            case_url = link.get('href')
+            case_url = link.get("href")
 
-            if case_url and not case_url.startswith('http'):
+            if case_url and not case_url.startswith("http"):
                 case_url = f"{self.base_url}{case_url}"
 
             # Extract case ID from URL
             case_id = ""
             if case_url:
-                case_id_match = re.search(r'/(inst|cases)/(.+)', case_url)
+                case_id_match = re.search(r"/(inst|cases)/(.+)", case_url)
                 if case_id_match:
                     case_id = f"{case_id_match.group(1)}/{case_id_match.group(2)}"
 
             # Determine court/tribunal from URL
             court_name = ""
             tribunal_patterns = [
-                (r'/iachr/', 'Inter-American Court of Human Rights'),
-                (r'/icj/', 'International Court of Justice'),
-                (r'/itlos/', 'International Tribunal for the Law of the Sea'),
-                (r'/echr/', 'European Court of Human Rights'),
-                (r'/icc/', 'International Criminal Court'),
-                (r'/icty/', 'International Criminal Tribunal for the former Yugoslavia'),
-                (r'/ictr/', 'International Criminal Tribunal for Rwanda'),
-                (r'/wto/', 'World Trade Organization'),
-                (r'/icsid/', 'International Centre for Settlement of Investment Disputes')
+                (r"/iachr/", "Inter-American Court of Human Rights"),
+                (r"/icj/", "International Court of Justice"),
+                (r"/itlos/", "International Tribunal for the Law of the Sea"),
+                (r"/echr/", "European Court of Human Rights"),
+                (r"/icc/", "International Criminal Court"),
+                (
+                    r"/icty/",
+                    "International Criminal Tribunal for the former Yugoslavia",
+                ),
+                (r"/ictr/", "International Criminal Tribunal for Rwanda"),
+                (r"/wto/", "World Trade Organization"),
+                (
+                    r"/icsid/",
+                    "International Centre for Settlement of Investment Disputes",
+                ),
             ]
 
             for pattern, court in tribunal_patterns:
-                if re.search(pattern, case_url or ''):
+                if re.search(pattern, case_url or ""):
                     court_name = court
                     break
 
@@ -195,9 +201,7 @@ class WorldCourtsScraper(BaseScraper):
                 court=court_name,
                 url=case_url,
                 jurisdiction=self.jurisdiction,
-                metadata={
-                    'source': 'WorldCourts'
-                }
+                metadata={"source": "WorldCourts"},
             )
 
         except Exception as e:
@@ -209,13 +213,13 @@ class WorldCourtsScraper(BaseScraper):
         try:
             # Extract case name from title or heading
             case_name = ""
-            title_elem = soup.find('title')
+            title_elem = soup.find("title")
             if title_elem:
                 case_name = sanitize_text(title_elem.get_text())
 
             # Try h1 if title doesn't work
             if not case_name:
-                h1_elem = soup.find('h1')
+                h1_elem = soup.find("h1")
                 if h1_elem:
                     case_name = sanitize_text(h1_elem.get_text())
 
@@ -226,15 +230,21 @@ class WorldCourtsScraper(BaseScraper):
 
             # Determine court from URL
             tribunal_patterns = [
-                (r'/iachr/', 'Inter-American Court of Human Rights'),
-                (r'/icj/', 'International Court of Justice'),
-                (r'/itlos/', 'International Tribunal for the Law of the Sea'),
-                (r'/echr/', 'European Court of Human Rights'),
-                (r'/icc/', 'International Criminal Court'),
-                (r'/icty/', 'International Criminal Tribunal for the former Yugoslavia'),
-                (r'/ictr/', 'International Criminal Tribunal for Rwanda'),
-                (r'/wto/', 'World Trade Organization'),
-                (r'/icsid/', 'International Centre for Settlement of Investment Disputes')
+                (r"/iachr/", "Inter-American Court of Human Rights"),
+                (r"/icj/", "International Court of Justice"),
+                (r"/itlos/", "International Tribunal for the Law of the Sea"),
+                (r"/echr/", "European Court of Human Rights"),
+                (r"/icc/", "International Criminal Court"),
+                (
+                    r"/icty/",
+                    "International Criminal Tribunal for the former Yugoslavia",
+                ),
+                (r"/ictr/", "International Criminal Tribunal for Rwanda"),
+                (r"/wto/", "World Trade Organization"),
+                (
+                    r"/icsid/",
+                    "International Centre for Settlement of Investment Disputes",
+                ),
             ]
 
             for pattern, court in tribunal_patterns:
@@ -246,13 +256,13 @@ class WorldCourtsScraper(BaseScraper):
             page_text = soup.get_text()
             if not court_name:
                 court_patterns = [
-                    r'(International Court of Justice|ICJ)',
-                    r'(Inter-American Court of Human Rights|IACHR)',
-                    r'(European Court of Human Rights|ECHR)',
-                    r'(International Criminal Court|ICC)',
-                    r'(International Tribunal for the Law of the Sea|ITLOS)',
-                    r'(World Trade Organization|WTO)',
-                    r'(International Centre for Settlement of Investment Disputes|ICSID)'
+                    r"(International Court of Justice|ICJ)",
+                    r"(Inter-American Court of Human Rights|IACHR)",
+                    r"(European Court of Human Rights|ECHR)",
+                    r"(International Criminal Court|ICC)",
+                    r"(International Tribunal for the Law of the Sea|ITLOS)",
+                    r"(World Trade Organization|WTO)",
+                    r"(International Centre for Settlement of Investment Disputes|ICSID)",
                 ]
 
                 for pattern in court_patterns:
@@ -263,9 +273,9 @@ class WorldCourtsScraper(BaseScraper):
 
             # Look for date patterns
             date_patterns = [
-                r'(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})',
-                r'(\d{4}-\d{2}-\d{2})',
-                r'(\d{1,2}/\d{1,2}/\d{4})'
+                r"(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})",
+                r"(\d{4}-\d{2}-\d{2})",
+                r"(\d{1,2}/\d{1,2}/\d{4})",
             ]
 
             for pattern in date_patterns:
@@ -274,24 +284,24 @@ class WorldCourtsScraper(BaseScraper):
                     try:
                         # Try different date formats
                         date_str = date_matches[0]
-                        if '-' in date_str:
-                            case_date = datetime.strptime(date_str, '%Y-%m-%d')
-                        elif '/' in date_str:
-                            case_date = datetime.strptime(date_str, '%d/%m/%Y')
+                        if "-" in date_str:
+                            case_date = datetime.strptime(date_str, "%Y-%m-%d")
+                        elif "/" in date_str:
+                            case_date = datetime.strptime(date_str, "%d/%m/%Y")
                         else:
-                            case_date = datetime.strptime(date_str, '%d %B %Y')
+                            case_date = datetime.strptime(date_str, "%d %B %Y")
                         break
                     except ValueError:
                         continue
 
             # Extract citations and case numbers
             citation_patterns = [
-                r'Case\s+No\.\s+([A-Z]+-\d+)',
-                r'Application\s+No\.\s+(\d+/\d+)',
-                r'Judgment\s+of\s+(\d{1,2}\s+\w+\s+\d{4})',
-                r'Series\s+[A-Z]\s+No\.\s+(\d+)',
-                r'ECHR\s+(\d+)\s+\((\d{4})\)',
-                r'I\.C\.J\.\s+Reports\s+(\d{4}),?\s+p\.\s*(\d+)'
+                r"Case\s+No\.\s+([A-Z]+-\d+)",
+                r"Application\s+No\.\s+(\d+/\d+)",
+                r"Judgment\s+of\s+(\d{1,2}\s+\w+\s+\d{4})",
+                r"Series\s+[A-Z]\s+No\.\s+(\d+)",
+                r"ECHR\s+(\d+)\s+\((\d{4})\)",
+                r"I\.C\.J\.\s+Reports\s+(\d{4}),?\s+p\.\s*(\d+)",
             ]
 
             for pattern in citation_patterns:
@@ -299,7 +309,7 @@ class WorldCourtsScraper(BaseScraper):
                 if citation_matches:
                     for match in citation_matches:
                         if isinstance(match, tuple):
-                            citations.append(' '.join(str(m) for m in match))
+                            citations.append(" ".join(str(m) for m in match))
                         else:
                             citations.append(match)
 
@@ -307,19 +317,21 @@ class WorldCourtsScraper(BaseScraper):
             full_text = ""
             # Look for main content area
             content_selectors = [
-                'div.judgment-content',
-                'div.decision-content',
-                'div.content',
-                'div#main',
-                'div.main-content',
-                'body'
+                "div.judgment-content",
+                "div.decision-content",
+                "div.content",
+                "div#main",
+                "div.main-content",
+                "body",
             ]
 
             for selector in content_selectors:
                 content_div = soup.select_one(selector)
                 if content_div:
                     # Remove navigation and other non-content elements
-                    for unwanted in content_div.find_all(['nav', 'header', 'footer', 'script', 'style']):
+                    for unwanted in content_div.find_all(
+                        ["nav", "header", "footer", "script", "style"]
+                    ):
                         unwanted.decompose()
                     full_text = sanitize_text(content_div.get_text())
                     break
@@ -327,30 +339,32 @@ class WorldCourtsScraper(BaseScraper):
             # Extract judges
             judges = []
             judge_patterns = [
-                r'(?:Judge|Justice)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'President\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'Vice-President\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'([A-Z][a-z]+),?\s+(?:Judge|Justice)'
+                r"(?:Judge|Justice)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"President\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"Vice-President\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"([A-Z][a-z]+),?\s+(?:Judge|Justice)",
             ]
 
             for pattern in judge_patterns:
-                judge_matches = re.findall(pattern, full_text[:3000])  # Look in first part
+                judge_matches = re.findall(
+                    pattern, full_text[:3000]
+                )  # Look in first part
                 judges.extend(judge_matches)
 
             judges = list(set(judges[:5]))  # Limit and dedupe
 
             # Extract case ID from URL
             case_id = ""
-            case_id_match = re.search(r'/(inst|cases)/(.+)', url)
+            case_id_match = re.search(r"/(inst|cases)/(.+)", url)
             if case_id_match:
                 case_id = f"{case_id_match.group(1)}/{case_id_match.group(2)}"
 
             # Extract parties
             parties = []
             party_patterns = [
-                r'([A-Z][a-z\s]+(?:Republic|State|Kingdom)?)\s+v\.?\s+([A-Z][a-z\s]+(?:Republic|State|Kingdom)?)',
-                r'([A-Z][a-z\s]+)\s+v\.\s+([A-Z][a-z\s]+)',
-                r'Case\s+of\s+([A-Z][a-z\s]+)\s+v\.?\s+([A-Z][a-z\s]+)'
+                r"([A-Z][a-z\s]+(?:Republic|State|Kingdom)?)\s+v\.?\s+([A-Z][a-z\s]+(?:Republic|State|Kingdom)?)",
+                r"([A-Z][a-z\s]+)\s+v\.\s+([A-Z][a-z\s]+)",
+                r"Case\s+of\s+([A-Z][a-z\s]+)\s+v\.?\s+([A-Z][a-z\s]+)",
             ]
 
             for pattern in party_patterns:
@@ -364,8 +378,8 @@ class WorldCourtsScraper(BaseScraper):
             # Extract case type
             case_type = ""
             type_patterns = [
-                r'(Judgment|Decision|Order|Advisory Opinion|Preliminary Objections)',
-                r'(Merits|Provisional Measures|Jurisdiction)'
+                r"(Judgment|Decision|Order|Advisory Opinion|Preliminary Objections)",
+                r"(Merits|Provisional Measures|Jurisdiction)",
             ]
 
             for pattern in type_patterns:
@@ -386,9 +400,7 @@ class WorldCourtsScraper(BaseScraper):
                 citations=citations,
                 case_type=case_type,
                 jurisdiction=self.jurisdiction,
-                metadata={
-                    'source': 'WorldCourts'
-                }
+                metadata={"source": "WorldCourts"},
             )
 
         except Exception as e:
@@ -422,7 +434,7 @@ def search_cases(
     start_date: Union[str, datetime] = None,
     end_date: Union[str, datetime] = None,
     court: str = None,
-    limit: int = 100
+    limit: int = 100,
 ) -> List[CaseData]:
     """
     Search for cases on WorldCourts.
@@ -447,5 +459,5 @@ def search_cases(
             start_date=start_date,
             end_date=end_date,
             court=court,
-            limit=limit
+            limit=limit,
         )
