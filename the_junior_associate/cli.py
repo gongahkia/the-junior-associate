@@ -235,9 +235,7 @@ Examples:
     search_parser = subparsers.add_parser("search", help="Search for cases")
     search_parser.add_argument("scraper", help="Scraper to use")
     search_parser.add_argument("query", help="Search query")
-    search_parser.add_argument(
-        "--start-date", help="Start date (YYYY-MM-DD)", type=str
-    )
+    search_parser.add_argument("--start-date", help="Start date (YYYY-MM-DD)", type=str)
     search_parser.add_argument("--end-date", help="End date (YYYY-MM-DD)", type=str)
     search_parser.add_argument("--court", help="Court name or code", type=str)
     search_parser.add_argument(
@@ -284,12 +282,15 @@ def main() -> None:
     # Set verbosity level
     if args.verbose >= 2:
         import logging
+
         verbosity = logging.DEBUG
     elif args.verbose >= 1:
         import logging
+
         verbosity = logging.INFO
     else:
         import logging
+
         verbosity = logging.WARNING
 
     args.verbose = verbosity
