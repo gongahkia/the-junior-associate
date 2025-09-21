@@ -38,7 +38,7 @@ class SupremeCourtIndiaScraper(BaseScraper):
         end_date: Union[str, datetime] = None,
         court: str = None,
         limit: int = 100,
-        **kwargs
+        **kwargs,
     ) -> List[CaseData]:
         """
         Search for cases on Supreme Court of India website.
@@ -69,25 +69,25 @@ class SupremeCourtIndiaScraper(BaseScraper):
         search_params = {}
 
         if query:
-            search_params['search_text'] = query
+            search_params["search_text"] = query
 
-        if params.get('start_date'):
-            search_params['from_date'] = params['start_date'].strftime('%d-%m-%Y')
+        if params.get("start_date"):
+            search_params["from_date"] = params["start_date"].strftime("%d-%m-%Y")
 
-        if params.get('end_date'):
-            search_params['to_date'] = params['end_date'].strftime('%d-%m-%Y')
+        if params.get("end_date"):
+            search_params["to_date"] = params["end_date"].strftime("%d-%m-%Y")
 
         # Additional parameters
-        bench = kwargs.get('bench')
+        bench = kwargs.get("bench")
         if bench:
-            search_params['bench'] = bench
+            search_params["bench"] = bench
 
-        case_type = kwargs.get('case_type')
+        case_type = kwargs.get("case_type")
         if case_type:
-            search_params['case_type'] = case_type
+            search_params["case_type"] = case_type
 
         # Set results limit
-        search_params['limit'] = min(params.get('limit', 100), 200)
+        search_params["limit"] = min(params.get("limit", 100), 200)
 
         # Make request to search page
         url = f"{self.base_url}/judgments"
@@ -102,9 +102,9 @@ class SupremeCourtIndiaScraper(BaseScraper):
         cases = []
 
         # Look for judgment links in search results
-        judgment_links = soup.find_all('a', href=re.compile(r'/judgment/'))
+        judgment_links = soup.find_all("a", href=re.compile(r"/judgment/"))
 
-        for link in judgment_links[:params.get('limit', 100)]:
+        for link in judgment_links[: params.get("limit", 100)]:
             try:
                 case_data = self._parse_search_result_link(link)
                 if case_data:
@@ -134,9 +134,9 @@ class SupremeCourtIndiaScraper(BaseScraper):
             raise ValueError("Case ID is required")
 
         # Determine URL format
-        if case_id.startswith('http'):
+        if case_id.startswith("http"):
             url = case_id
-        elif re.match(r'[A-Z]+\s*\([A-Z]\)\s*\d+/\d+', case_id):
+        elif re.match(r"[A-Z]+\s*\([A-Z]\)\s*\d+/\d+", case_id):
             # Supreme Court case number format
             cases = self.search_cases(query=case_id, limit=1)
             if cases:
@@ -161,18 +161,18 @@ class SupremeCourtIndiaScraper(BaseScraper):
         """Parse a search result link into CaseData."""
         try:
             case_name = sanitize_text(link.get_text())
-            case_url = link.get('href')
+            case_url = link.get("href")
 
-            if case_url and not case_url.startswith('http'):
+            if case_url and not case_url.startswith("http"):
                 case_url = f"{self.base_url}{case_url}"
 
             # Extract case ID from case name
             case_id = ""
             case_number_patterns = [
-                r'([A-Z]+\s*\([A-Z]\)\s*\d+/\d+)',
-                r'(SLP\s*\([A-Z]\)\s*No\.\s*\d+/\d+)',
-                r'(Civil\s+Appeal\s+No\.\s*\d+/\d+)',
-                r'(Criminal\s+Appeal\s+No\.\s*\d+/\d+)'
+                r"([A-Z]+\s*\([A-Z]\)\s*\d+/\d+)",
+                r"(SLP\s*\([A-Z]\)\s*No\.\s*\d+/\d+)",
+                r"(Civil\s+Appeal\s+No\.\s*\d+/\d+)",
+                r"(Criminal\s+Appeal\s+No\.\s*\d+/\d+)",
             ]
 
             for pattern in case_number_patterns:
@@ -188,9 +188,7 @@ class SupremeCourtIndiaScraper(BaseScraper):
                 court="Supreme Court of India",
                 url=case_url,
                 jurisdiction=self.jurisdiction,
-                metadata={
-                    'source': 'Supreme Court of India'
-                }
+                metadata={"source": "Supreme Court of India"},
             )
 
         except Exception as e:
@@ -202,13 +200,13 @@ class SupremeCourtIndiaScraper(BaseScraper):
         try:
             # Extract case name from title or heading
             case_name = ""
-            title_elem = soup.find('title')
+            title_elem = soup.find("title")
             if title_elem:
                 case_name = sanitize_text(title_elem.get_text())
 
             # Try h1 if title doesn't work
             if not case_name:
-                h1_elem = soup.find('h1')
+                h1_elem = soup.find("h1")
                 if h1_elem:
                     case_name = sanitize_text(h1_elem.get_text())
 
@@ -221,9 +219,9 @@ class SupremeCourtIndiaScraper(BaseScraper):
 
             # Look for date patterns
             date_patterns = [
-                r'(\d{1,2}-\d{1,2}-\d{4})',
-                r'(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})',
-                r'(\d{4}-\d{2}-\d{2})'
+                r"(\d{1,2}-\d{1,2}-\d{4})",
+                r"(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})",
+                r"(\d{4}-\d{2}-\d{2})",
             ]
 
             for pattern in date_patterns:
@@ -232,22 +230,22 @@ class SupremeCourtIndiaScraper(BaseScraper):
                     try:
                         # Try different date formats
                         date_str = date_matches[0]
-                        if '-' in date_str and len(date_str.split('-')[0]) == 4:
-                            case_date = datetime.strptime(date_str, '%Y-%m-%d')
-                        elif '-' in date_str:
-                            case_date = datetime.strptime(date_str, '%d-%m-%Y')
+                        if "-" in date_str and len(date_str.split("-")[0]) == 4:
+                            case_date = datetime.strptime(date_str, "%Y-%m-%d")
+                        elif "-" in date_str:
+                            case_date = datetime.strptime(date_str, "%d-%m-%Y")
                         else:
-                            case_date = datetime.strptime(date_str, '%d %B %Y')
+                            case_date = datetime.strptime(date_str, "%d %B %Y")
                         break
                     except ValueError:
                         continue
 
             # Extract citations
             citation_patterns = [
-                r'(\d{4})\s+(\d+)\s+(SCC|SCR)',
-                r'\((\d{4})\)\s+(\d+)\s+(SCC|SCR)',
-                r'AIR\s+(\d{4})\s+SC\s+(\d+)',
-                r'JT\s+(\d{4})\s+(\d+)\s+SC\s+(\d+)'
+                r"(\d{4})\s+(\d+)\s+(SCC|SCR)",
+                r"\((\d{4})\)\s+(\d+)\s+(SCC|SCR)",
+                r"AIR\s+(\d{4})\s+SC\s+(\d+)",
+                r"JT\s+(\d{4})\s+(\d+)\s+SC\s+(\d+)",
             ]
 
             for pattern in citation_patterns:
@@ -263,19 +261,21 @@ class SupremeCourtIndiaScraper(BaseScraper):
             full_text = ""
             # Look for main content area
             content_selectors = [
-                'div.judgment-content',
-                'div.judgment-text',
-                'div.content',
-                'div#main',
-                'div.main-content',
-                'body'
+                "div.judgment-content",
+                "div.judgment-text",
+                "div.content",
+                "div#main",
+                "div.main-content",
+                "body",
             ]
 
             for selector in content_selectors:
                 content_div = soup.select_one(selector)
                 if content_div:
                     # Remove navigation and other non-content elements
-                    for unwanted in content_div.find_all(['nav', 'header', 'footer', 'script', 'style']):
+                    for unwanted in content_div.find_all(
+                        ["nav", "header", "footer", "script", "style"]
+                    ):
                         unwanted.decompose()
                     full_text = sanitize_text(content_div.get_text())
                     break
@@ -283,25 +283,32 @@ class SupremeCourtIndiaScraper(BaseScraper):
             # Extract judges
             judges = []
             judge_patterns = [
-                r'(?:Justice|J\.)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'Hon\'ble\s+(?:Mr\.|Ms\.)\s+Justice\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'([A-Z][a-z]+\s+J\.?)',
-                r'Chief\s+Justice\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)'
+                r"(?:Justice|J\.)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"Hon\'ble\s+(?:Mr\.|Ms\.)\s+Justice\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"([A-Z][a-z]+\s+J\.?)",
+                r"Chief\s+Justice\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
             ]
 
             for pattern in judge_patterns:
-                judge_matches = re.findall(pattern, full_text[:3000])  # Look in first part
-                judges.extend([match.replace(' J.', '').replace(' J', '') for match in judge_matches])
+                judge_matches = re.findall(
+                    pattern, full_text[:3000]
+                )  # Look in first part
+                judges.extend(
+                    [
+                        match.replace(" J.", "").replace(" J", "")
+                        for match in judge_matches
+                    ]
+                )
 
             judges = list(set(judges[:5]))  # Limit and dedupe
 
             # Extract case ID from case name or text
             case_id = ""
             case_number_patterns = [
-                r'([A-Z]+\s*\([A-Z]\)\s*\d+/\d+)',
-                r'(SLP\s*\([A-Z]\)\s*No\.\s*\d+/\d+)',
-                r'(Civil\s+Appeal\s+No\.\s*\d+/\d+)',
-                r'(Criminal\s+Appeal\s+No\.\s*\d+/\d+)'
+                r"([A-Z]+\s*\([A-Z]\)\s*\d+/\d+)",
+                r"(SLP\s*\([A-Z]\)\s*No\.\s*\d+/\d+)",
+                r"(Civil\s+Appeal\s+No\.\s*\d+/\d+)",
+                r"(Criminal\s+Appeal\s+No\.\s*\d+/\d+)",
             ]
 
             for pattern in case_number_patterns:
@@ -313,8 +320,8 @@ class SupremeCourtIndiaScraper(BaseScraper):
             # Extract parties
             parties = []
             party_patterns = [
-                r'([A-Z][a-z\s]+(?:Ltd|Pvt\.\s+Ltd|Inc)?)\s+[Vv]\.\s+([A-Z][a-z\s]+(?:Ltd|Pvt\.\s+Ltd|Inc)?)',
-                r'([A-Z][a-z\s]+)\s+vs?\.\s+([A-Z][a-z\s]+)'
+                r"([A-Z][a-z\s]+(?:Ltd|Pvt\.\s+Ltd|Inc)?)\s+[Vv]\.\s+([A-Z][a-z\s]+(?:Ltd|Pvt\.\s+Ltd|Inc)?)",
+                r"([A-Z][a-z\s]+)\s+vs?\.\s+([A-Z][a-z\s]+)",
             ]
 
             for pattern in party_patterns:
@@ -328,10 +335,10 @@ class SupremeCourtIndiaScraper(BaseScraper):
             # Extract case type
             case_type = ""
             type_patterns = [
-                r'(Special Leave Petition|SLP)',
-                r'(Civil Appeal|Criminal Appeal)',
-                r'(Writ Petition|Original Jurisdiction)',
-                r'(Transfer Petition|Review Petition)'
+                r"(Special Leave Petition|SLP)",
+                r"(Civil Appeal|Criminal Appeal)",
+                r"(Writ Petition|Original Jurisdiction)",
+                r"(Transfer Petition|Review Petition)",
             ]
 
             for pattern in type_patterns:
@@ -352,9 +359,7 @@ class SupremeCourtIndiaScraper(BaseScraper):
                 citations=citations,
                 case_type=case_type,
                 jurisdiction=self.jurisdiction,
-                metadata={
-                    'source': 'Supreme Court of India'
-                }
+                metadata={"source": "Supreme Court of India"},
             )
 
         except Exception as e:
@@ -388,7 +393,7 @@ def search_cases(
     start_date: Union[str, datetime] = None,
     end_date: Union[str, datetime] = None,
     court: str = None,
-    limit: int = 100
+    limit: int = 100,
 ) -> List[CaseData]:
     """
     Search for cases on Supreme Court of India website.
@@ -413,5 +418,5 @@ def search_cases(
             start_date=start_date,
             end_date=end_date,
             court=court,
-            limit=limit
+            limit=limit,
         )

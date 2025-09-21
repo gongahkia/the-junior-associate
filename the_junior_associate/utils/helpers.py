@@ -51,33 +51,33 @@ def sanitize_text(text: str) -> str:
         return ""
 
     # Remove extra whitespace and normalize line breaks
-    text = re.sub(r'\s+', ' ', text.strip())
+    text = re.sub(r"\s+", " ", text.strip())
 
     # Remove HTML entities that might have been missed
     html_entities = {
-        '&nbsp;': ' ',
-        '&amp;': '&',
-        '&lt;': '<',
-        '&gt;': '>',
-        '&quot;': '"',
-        '&#39;': "'",
-        '&apos;': "'",
+        "&nbsp;": " ",
+        "&amp;": "&",
+        "&lt;": "<",
+        "&gt;": ">",
+        "&quot;": '"',
+        "&#39;": "'",
+        "&apos;": "'",
     }
 
     for entity, replacement in html_entities.items():
         text = text.replace(entity, replacement)
 
     # Remove common PDF artifacts
-    text = re.sub(r'\f', ' ', text)  # Form feed
-    text = re.sub(r'\x0c', ' ', text)  # Form feed
-    text = re.sub(r'\u00a0', ' ', text)  # Non-breaking space
+    text = re.sub(r"\f", " ", text)  # Form feed
+    text = re.sub(r"\x0c", " ", text)  # Form feed
+    text = re.sub(r"\u00a0", " ", text)  # Non-breaking space
 
     # Normalize quotes
     text = re.sub(r'["""]', '"', text)
     text = re.sub(r"[''']", "'", text)
 
     # Clean up multiple spaces again after replacements
-    text = re.sub(r'\s+', ' ', text).strip()
+    text = re.sub(r"\s+", " ", text).strip()
 
     return text
 
@@ -100,7 +100,7 @@ def setup_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     if not logger.handlers:
         handler = logging.StreamHandler()
         formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
         handler.setFormatter(formatter)
         logger.addHandler(handler)
@@ -141,13 +141,13 @@ def normalize_court_name(court_name: str) -> str:
 
     # Common abbreviations and normalizations
     normalizations = {
-        r'\bS\.?C\.?\b': 'Supreme Court',
-        r'\bC\.?A\.?\b': 'Court of Appeal',
-        r'\bH\.?C\.?\b': 'High Court',
-        r'\bD\.?C\.?\b': 'District Court',
-        r'\bF\.?C\.?\b': 'Federal Court',
-        r'\bCt\.?\b': 'Court',
-        r'\bJ\.?\b': 'Justice',
+        r"\bS\.?C\.?\b": "Supreme Court",
+        r"\bC\.?A\.?\b": "Court of Appeal",
+        r"\bH\.?C\.?\b": "High Court",
+        r"\bD\.?C\.?\b": "District Court",
+        r"\bF\.?C\.?\b": "Federal Court",
+        r"\bCt\.?\b": "Court",
+        r"\bJ\.?\b": "Justice",
     }
 
     result = court_name.strip()
@@ -179,7 +179,8 @@ def build_search_url(base_url: str, params: dict) -> str:
 
     # Build query string
     from urllib.parse import urlencode
+
     query_string = urlencode(clean_params)
-    separator = '&' if '?' in base_url else '?'
+    separator = "&" if "?" in base_url else "?"
 
     return f"{base_url}{separator}{query_string}"

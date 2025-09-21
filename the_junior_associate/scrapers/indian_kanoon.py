@@ -38,7 +38,7 @@ class IndianKanoonScraper(BaseScraper):
         end_date: Union[str, datetime] = None,
         court: str = None,
         limit: int = 100,
-        **kwargs
+        **kwargs,
     ) -> List[CaseData]:
         """
         Search for cases on Indian Kanoon.
@@ -70,28 +70,28 @@ class IndianKanoonScraper(BaseScraper):
         search_params = {}
 
         if query:
-            search_params['formInput'] = query
+            search_params["formInput"] = query
 
-        if params.get('start_date'):
-            search_params['from_date'] = params['start_date'].strftime('%d-%m-%Y')
+        if params.get("start_date"):
+            search_params["from_date"] = params["start_date"].strftime("%d-%m-%Y")
 
-        if params.get('end_date'):
-            search_params['to_date'] = params['end_date'].strftime('%d-%m-%Y')
+        if params.get("end_date"):
+            search_params["to_date"] = params["end_date"].strftime("%d-%m-%Y")
 
         if court:
-            search_params['court'] = court
+            search_params["court"] = court
 
         # Additional parameters
-        author = kwargs.get('author')
+        author = kwargs.get("author")
         if author:
-            search_params['author'] = author
+            search_params["author"] = author
 
-        bench = kwargs.get('bench')
+        bench = kwargs.get("bench")
         if bench:
-            search_params['bench'] = bench
+            search_params["bench"] = bench
 
         # Set results limit
-        search_params['limit'] = min(params.get('limit', 100), 200)
+        search_params["limit"] = min(params.get("limit", 100), 200)
 
         # Make request to search page
         url = f"{self.base_url}/search/"
@@ -106,9 +106,9 @@ class IndianKanoonScraper(BaseScraper):
         cases = []
 
         # Look for judgment links in search results
-        result_divs = soup.find_all('div', class_='result')
+        result_divs = soup.find_all("div", class_="result")
 
-        for result_div in result_divs[:params.get('limit', 100)]:
+        for result_div in result_divs[: params.get("limit", 100)]:
             try:
                 case_data = self._parse_search_result(result_div)
                 if case_data:
@@ -138,7 +138,7 @@ class IndianKanoonScraper(BaseScraper):
             raise ValueError("Case ID is required")
 
         # Determine URL format
-        if case_id.startswith('http'):
+        if case_id.startswith("http"):
             url = case_id
         elif case_id.isdigit():
             # Indian Kanoon document ID
@@ -163,11 +163,11 @@ class IndianKanoonScraper(BaseScraper):
         try:
             # Extract case name from result title
             case_name = ""
-            title_link = result_div.find('a', class_='result_title')
+            title_link = result_div.find("a", class_="result_title")
             if title_link:
                 case_name = sanitize_text(title_link.get_text())
-                case_url = title_link.get('href')
-                if case_url and not case_url.startswith('http'):
+                case_url = title_link.get("href")
+                if case_url and not case_url.startswith("http"):
                     case_url = f"{self.base_url}{case_url}"
             else:
                 return None
@@ -177,38 +177,40 @@ class IndianKanoonScraper(BaseScraper):
             case_date = None
             citations = []
 
-            meta_div = result_div.find('div', class_='result_meta')
+            meta_div = result_div.find("div", class_="result_meta")
             if meta_div:
                 meta_text = sanitize_text(meta_div.get_text())
 
                 # Extract court from meta text
-                court_match = re.search(r'Court:\s*([^,\n]+)', meta_text, re.IGNORECASE)
+                court_match = re.search(r"Court:\s*([^,\n]+)", meta_text, re.IGNORECASE)
                 if court_match:
                     court_name = normalize_court_name(court_match.group(1))
 
                 # Extract date
-                date_match = re.search(r'(\d{1,2}-\d{1,2}-\d{4})', meta_text)
+                date_match = re.search(r"(\d{1,2}-\d{1,2}-\d{4})", meta_text)
                 if date_match:
                     try:
-                        case_date = datetime.strptime(date_match.group(1), '%d-%m-%Y')
+                        case_date = datetime.strptime(date_match.group(1), "%d-%m-%Y")
                     except ValueError:
                         pass
 
                 # Extract citations
-                citation_matches = re.findall(r'(\d{4})\s+(\d+)\s+(SCC|SCR|AIR)', meta_text)
+                citation_matches = re.findall(
+                    r"(\d{4})\s+(\d+)\s+(SCC|SCR|AIR)", meta_text
+                )
                 for match in citation_matches:
                     citations.append(f"({match[0]}) {match[1]} {match[2]}")
 
             # Extract case ID from URL
             case_id = ""
             if case_url:
-                case_id_match = re.search(r'/doc/(\d+)/', case_url)
+                case_id_match = re.search(r"/doc/(\d+)/", case_url)
                 if case_id_match:
                     case_id = case_id_match.group(1)
 
             # Extract summary if available
             summary = ""
-            summary_div = result_div.find('div', class_='result_summary')
+            summary_div = result_div.find("div", class_="result_summary")
             if summary_div:
                 summary = sanitize_text(summary_div.get_text())
 
@@ -221,9 +223,7 @@ class IndianKanoonScraper(BaseScraper):
                 summary=summary,
                 citations=citations,
                 jurisdiction=self.jurisdiction,
-                metadata={
-                    'source': 'Indian Kanoon'
-                }
+                metadata={"source": "Indian Kanoon"},
             )
 
         except Exception as e:
@@ -235,13 +235,13 @@ class IndianKanoonScraper(BaseScraper):
         try:
             # Extract case name from title or heading
             case_name = ""
-            title_elem = soup.find('title')
+            title_elem = soup.find("title")
             if title_elem:
                 case_name = sanitize_text(title_elem.get_text())
 
             # Try h1 if title doesn't work
             if not case_name:
-                h1_elem = soup.find('h1')
+                h1_elem = soup.find("h1")
                 if h1_elem:
                     case_name = sanitize_text(h1_elem.get_text())
 
@@ -252,9 +252,9 @@ class IndianKanoonScraper(BaseScraper):
 
             # Look for court information
             court_patterns = [
-                r'(Supreme Court of India|High Court|District Court|Tribunal)',
-                r'(Delhi High Court|Bombay High Court|Calcutta High Court|Madras High Court)',
-                r'(ITAT|CESTAT|CAT|NGT)'
+                r"(Supreme Court of India|High Court|District Court|Tribunal)",
+                r"(Delhi High Court|Bombay High Court|Calcutta High Court|Madras High Court)",
+                r"(ITAT|CESTAT|CAT|NGT)",
             ]
 
             page_text = soup.get_text()
@@ -266,9 +266,9 @@ class IndianKanoonScraper(BaseScraper):
 
             # Look for date patterns
             date_patterns = [
-                r'(\d{1,2}-\d{1,2}-\d{4})',
-                r'(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})',
-                r'(\d{4}-\d{2}-\d{2})'
+                r"(\d{1,2}-\d{1,2}-\d{4})",
+                r"(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})",
+                r"(\d{4}-\d{2}-\d{2})",
             ]
 
             for pattern in date_patterns:
@@ -277,21 +277,21 @@ class IndianKanoonScraper(BaseScraper):
                     try:
                         # Try different date formats
                         date_str = date_matches[0]
-                        if '-' in date_str and len(date_str.split('-')[0]) == 4:
-                            case_date = datetime.strptime(date_str, '%Y-%m-%d')
-                        elif '-' in date_str:
-                            case_date = datetime.strptime(date_str, '%d-%m-%Y')
+                        if "-" in date_str and len(date_str.split("-")[0]) == 4:
+                            case_date = datetime.strptime(date_str, "%Y-%m-%d")
+                        elif "-" in date_str:
+                            case_date = datetime.strptime(date_str, "%d-%m-%Y")
                         else:
-                            case_date = datetime.strptime(date_str, '%d %B %Y')
+                            case_date = datetime.strptime(date_str, "%d %B %Y")
                         break
                     except ValueError:
                         continue
 
             # Extract citations
             citation_patterns = [
-                r'(\d{4})\s+(\d+)\s+(SCC|SCR|AIR)',
-                r'\((\d{4})\)\s+(\d+)\s+(SCC|SCR|AIR)',
-                r'AIR\s+(\d{4})\s+(SC|SCR)\s+(\d+)'
+                r"(\d{4})\s+(\d+)\s+(SCC|SCR|AIR)",
+                r"\((\d{4})\)\s+(\d+)\s+(SCC|SCR|AIR)",
+                r"AIR\s+(\d{4})\s+(SC|SCR)\s+(\d+)",
             ]
 
             for pattern in citation_patterns:
@@ -305,18 +305,20 @@ class IndianKanoonScraper(BaseScraper):
             full_text = ""
             # Look for main content area
             content_selectors = [
-                'div.judgment_text',
-                'div.doc_text',
-                'div#content',
-                'div.main-content',
-                'body'
+                "div.judgment_text",
+                "div.doc_text",
+                "div#content",
+                "div.main-content",
+                "body",
             ]
 
             for selector in content_selectors:
                 content_div = soup.select_one(selector)
                 if content_div:
                     # Remove navigation and other non-content elements
-                    for unwanted in content_div.find_all(['nav', 'header', 'footer', 'script', 'style']):
+                    for unwanted in content_div.find_all(
+                        ["nav", "header", "footer", "script", "style"]
+                    ):
                         unwanted.decompose()
                     full_text = sanitize_text(content_div.get_text())
                     break
@@ -324,28 +326,35 @@ class IndianKanoonScraper(BaseScraper):
             # Extract judges
             judges = []
             judge_patterns = [
-                r'(?:Justice|J\.)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'Hon\'ble\s+(?:Mr\.|Ms\.)\s+Justice\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'([A-Z][a-z]+\s+J\.?)'
+                r"(?:Justice|J\.)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"Hon\'ble\s+(?:Mr\.|Ms\.)\s+Justice\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"([A-Z][a-z]+\s+J\.?)",
             ]
 
             for pattern in judge_patterns:
-                judge_matches = re.findall(pattern, full_text[:3000])  # Look in first part
-                judges.extend([match.replace(' J.', '').replace(' J', '') for match in judge_matches])
+                judge_matches = re.findall(
+                    pattern, full_text[:3000]
+                )  # Look in first part
+                judges.extend(
+                    [
+                        match.replace(" J.", "").replace(" J", "")
+                        for match in judge_matches
+                    ]
+                )
 
             judges = list(set(judges[:5]))  # Limit and dedupe
 
             # Extract case ID from URL
             case_id = ""
-            case_id_match = re.search(r'/doc/(\d+)/', url)
+            case_id_match = re.search(r"/doc/(\d+)/", url)
             if case_id_match:
                 case_id = case_id_match.group(1)
 
             # Extract parties
             parties = []
             party_patterns = [
-                r'([A-Z][a-z\s]+(?:Ltd|Pvt\.\s+Ltd|Inc)?)\s+[Vv]\.\s+([A-Z][a-z\s]+(?:Ltd|Pvt\.\s+Ltd|Inc)?)',
-                r'([A-Z][a-z\s]+)\s+vs?\.\s+([A-Z][a-z\s]+)'
+                r"([A-Z][a-z\s]+(?:Ltd|Pvt\.\s+Ltd|Inc)?)\s+[Vv]\.\s+([A-Z][a-z\s]+(?:Ltd|Pvt\.\s+Ltd|Inc)?)",
+                r"([A-Z][a-z\s]+)\s+vs?\.\s+([A-Z][a-z\s]+)",
             ]
 
             for pattern in party_patterns:
@@ -367,9 +376,7 @@ class IndianKanoonScraper(BaseScraper):
                 parties=parties,
                 citations=citations,
                 jurisdiction=self.jurisdiction,
-                metadata={
-                    'source': 'Indian Kanoon'
-                }
+                metadata={"source": "Indian Kanoon"},
             )
 
         except Exception as e:
@@ -403,7 +410,7 @@ def search_cases(
     start_date: Union[str, datetime] = None,
     end_date: Union[str, datetime] = None,
     court: str = None,
-    limit: int = 100
+    limit: int = 100,
 ) -> List[CaseData]:
     """
     Search for cases on Indian Kanoon.
@@ -428,5 +435,5 @@ def search_cases(
             start_date=start_date,
             end_date=end_date,
             court=court,
-            limit=limit
+            limit=limit,
         )

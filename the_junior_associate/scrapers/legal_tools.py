@@ -39,7 +39,7 @@ class LegalToolsScraper(BaseScraper):
         end_date: Union[str, datetime] = None,
         court: str = None,
         limit: int = 100,
-        **kwargs
+        **kwargs,
     ) -> List[CaseData]:
         """
         Search for cases on ICC Legal Tools Database.
@@ -71,29 +71,29 @@ class LegalToolsScraper(BaseScraper):
         search_params = {}
 
         if query:
-            search_params['q'] = query
+            search_params["q"] = query
 
-        if params.get('start_date'):
-            search_params['start_date'] = params['start_date'].strftime('%Y-%m-%d')
+        if params.get("start_date"):
+            search_params["start_date"] = params["start_date"].strftime("%Y-%m-%d")
 
-        if params.get('end_date'):
-            search_params['end_date'] = params['end_date'].strftime('%Y-%m-%d')
+        if params.get("end_date"):
+            search_params["end_date"] = params["end_date"].strftime("%Y-%m-%d")
 
         if court:
-            search_params['court'] = court
+            search_params["court"] = court
 
         # Document type filter
-        document_type = kwargs.get('document_type')
+        document_type = kwargs.get("document_type")
         if document_type:
-            search_params['doc_type'] = document_type
+            search_params["doc_type"] = document_type
 
         # Language filter
-        language = kwargs.get('language')
+        language = kwargs.get("language")
         if language:
-            search_params['lang'] = language
+            search_params["lang"] = language
 
         # Set results limit
-        search_params['limit'] = min(params.get('limit', 100), 200)
+        search_params["limit"] = min(params.get("limit", 100), 200)
 
         # Make request to search page
         url = f"{self.base_url}/doc/search"
@@ -108,9 +108,9 @@ class LegalToolsScraper(BaseScraper):
         cases = []
 
         # Look for document links in search results
-        doc_links = soup.find_all('a', href=re.compile(r'/doc/'))
+        doc_links = soup.find_all("a", href=re.compile(r"/doc/"))
 
-        for link in doc_links[:params.get('limit', 100)]:
+        for link in doc_links[: params.get("limit", 100)]:
             try:
                 case_data = self._parse_search_result_link(link)
                 if case_data:
@@ -140,7 +140,7 @@ class LegalToolsScraper(BaseScraper):
             raise ValueError("Case ID is required")
 
         # Determine URL format
-        if case_id.startswith('http'):
+        if case_id.startswith("http"):
             url = case_id
         elif case_id.isdigit():
             # Legal Tools document ID
@@ -164,27 +164,27 @@ class LegalToolsScraper(BaseScraper):
         """Parse a search result link into CaseData."""
         try:
             case_name = sanitize_text(link.get_text())
-            case_url = link.get('href')
+            case_url = link.get("href")
 
-            if case_url and not case_url.startswith('http'):
+            if case_url and not case_url.startswith("http"):
                 case_url = f"{self.base_url}{case_url}"
 
             # Extract case ID from URL
             case_id = ""
             if case_url:
-                case_id_match = re.search(r'/doc/(\d+)/', case_url)
+                case_id_match = re.search(r"/doc/(\d+)/", case_url)
                 if case_id_match:
                     case_id = case_id_match.group(1)
 
             # Determine court from case name or URL
             court_name = ""
             court_patterns = [
-                (r'ICC', 'International Criminal Court'),
-                (r'ICTY', 'International Criminal Tribunal for the former Yugoslavia'),
-                (r'ICTR', 'International Criminal Tribunal for Rwanda'),
-                (r'SCSL', 'Special Court for Sierra Leone'),
-                (r'STL', 'Special Tribunal for Lebanon'),
-                (r'ECCC', 'Extraordinary Chambers in the Courts of Cambodia')
+                (r"ICC", "International Criminal Court"),
+                (r"ICTY", "International Criminal Tribunal for the former Yugoslavia"),
+                (r"ICTR", "International Criminal Tribunal for Rwanda"),
+                (r"SCSL", "Special Court for Sierra Leone"),
+                (r"STL", "Special Tribunal for Lebanon"),
+                (r"ECCC", "Extraordinary Chambers in the Courts of Cambodia"),
             ]
 
             case_text = case_name.upper()
@@ -200,9 +200,7 @@ class LegalToolsScraper(BaseScraper):
                 court=court_name,
                 url=case_url,
                 jurisdiction=self.jurisdiction,
-                metadata={
-                    'source': 'ICC Legal Tools'
-                }
+                metadata={"source": "ICC Legal Tools"},
             )
 
         except Exception as e:
@@ -214,13 +212,13 @@ class LegalToolsScraper(BaseScraper):
         try:
             # Extract case name from title or heading
             case_name = ""
-            title_elem = soup.find('title')
+            title_elem = soup.find("title")
             if title_elem:
                 case_name = sanitize_text(title_elem.get_text())
 
             # Try h1 if title doesn't work
             if not case_name:
-                h1_elem = soup.find('h1')
+                h1_elem = soup.find("h1")
                 if h1_elem:
                     case_name = sanitize_text(h1_elem.get_text())
 
@@ -231,12 +229,12 @@ class LegalToolsScraper(BaseScraper):
 
             # Determine court from URL or case name
             court_patterns = [
-                (r'ICC', 'International Criminal Court'),
-                (r'ICTY', 'International Criminal Tribunal for the former Yugoslavia'),
-                (r'ICTR', 'International Criminal Tribunal for Rwanda'),
-                (r'SCSL', 'Special Court for Sierra Leone'),
-                (r'STL', 'Special Tribunal for Lebanon'),
-                (r'ECCC', 'Extraordinary Chambers in the Courts of Cambodia')
+                (r"ICC", "International Criminal Court"),
+                (r"ICTY", "International Criminal Tribunal for the former Yugoslavia"),
+                (r"ICTR", "International Criminal Tribunal for Rwanda"),
+                (r"SCSL", "Special Court for Sierra Leone"),
+                (r"STL", "Special Tribunal for Lebanon"),
+                (r"ECCC", "Extraordinary Chambers in the Courts of Cambodia"),
             ]
 
             page_text = soup.get_text()
@@ -249,9 +247,9 @@ class LegalToolsScraper(BaseScraper):
 
             # Look for date patterns
             date_patterns = [
-                r'(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})',
-                r'(\d{4}-\d{2}-\d{2})',
-                r'(\d{1,2}/\d{1,2}/\d{4})'
+                r"(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})",
+                r"(\d{4}-\d{2}-\d{2})",
+                r"(\d{1,2}/\d{1,2}/\d{4})",
             ]
 
             for pattern in date_patterns:
@@ -260,24 +258,24 @@ class LegalToolsScraper(BaseScraper):
                     try:
                         # Try different date formats
                         date_str = date_matches[0]
-                        if '-' in date_str:
-                            case_date = datetime.strptime(date_str, '%Y-%m-%d')
-                        elif '/' in date_str:
-                            case_date = datetime.strptime(date_str, '%d/%m/%Y')
+                        if "-" in date_str:
+                            case_date = datetime.strptime(date_str, "%Y-%m-%d")
+                        elif "/" in date_str:
+                            case_date = datetime.strptime(date_str, "%d/%m/%Y")
                         else:
-                            case_date = datetime.strptime(date_str, '%d %B %Y')
+                            case_date = datetime.strptime(date_str, "%d %B %Y")
                         break
                     except ValueError:
                         continue
 
             # Extract case numbers and citations
             citation_patterns = [
-                r'Case\s+No\.\s+([A-Z]+-\d+)',
-                r'IT-\d+-\d+',
-                r'ICTR-\d+-\d+',
-                r'SCSL-\d+-\d+',
-                r'STL-\d+-\d+',
-                r'(\d{3}-\d{2}-\d{6})'  # ECCC format
+                r"Case\s+No\.\s+([A-Z]+-\d+)",
+                r"IT-\d+-\d+",
+                r"ICTR-\d+-\d+",
+                r"SCSL-\d+-\d+",
+                r"STL-\d+-\d+",
+                r"(\d{3}-\d{2}-\d{6})",  # ECCC format
             ]
 
             for pattern in citation_patterns:
@@ -289,19 +287,21 @@ class LegalToolsScraper(BaseScraper):
             full_text = ""
             # Look for main content area
             content_selectors = [
-                'div.document-content',
-                'div.judgment-content',
-                'div.content',
-                'div#main',
-                'div.main-content',
-                'body'
+                "div.document-content",
+                "div.judgment-content",
+                "div.content",
+                "div#main",
+                "div.main-content",
+                "body",
             ]
 
             for selector in content_selectors:
                 content_div = soup.select_one(selector)
                 if content_div:
                     # Remove navigation and other non-content elements
-                    for unwanted in content_div.find_all(['nav', 'header', 'footer', 'script', 'style']):
+                    for unwanted in content_div.find_all(
+                        ["nav", "header", "footer", "script", "style"]
+                    ):
                         unwanted.decompose()
                     full_text = sanitize_text(content_div.get_text())
                     break
@@ -309,29 +309,31 @@ class LegalToolsScraper(BaseScraper):
             # Extract judges
             judges = []
             judge_patterns = [
-                r'(?:Judge|Justice)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'Presiding\s+Judge\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'([A-Z][a-z]+),?\s+(?:Judge|Justice)'
+                r"(?:Judge|Justice)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"Presiding\s+Judge\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"([A-Z][a-z]+),?\s+(?:Judge|Justice)",
             ]
 
             for pattern in judge_patterns:
-                judge_matches = re.findall(pattern, full_text[:3000])  # Look in first part
+                judge_matches = re.findall(
+                    pattern, full_text[:3000]
+                )  # Look in first part
                 judges.extend(judge_matches)
 
             judges = list(set(judges[:5]))  # Limit and dedupe
 
             # Extract case ID from URL
             case_id = ""
-            case_id_match = re.search(r'/doc/(\d+)/', url)
+            case_id_match = re.search(r"/doc/(\d+)/", url)
             if case_id_match:
                 case_id = case_id_match.group(1)
 
             # Extract parties (accused/prosecution)
             parties = []
             party_patterns = [
-                r'Prosecutor\s+v\.?\s+([A-Z][a-z\s]+)',
-                r'Case\s+against\s+([A-Z][a-z\s]+)',
-                r'([A-Z][a-z\s]+)\s+Case'
+                r"Prosecutor\s+v\.?\s+([A-Z][a-z\s]+)",
+                r"Case\s+against\s+([A-Z][a-z\s]+)",
+                r"([A-Z][a-z\s]+)\s+Case",
             ]
 
             for pattern in party_patterns:
@@ -343,9 +345,9 @@ class LegalToolsScraper(BaseScraper):
             # Extract case type/document type
             case_type = ""
             type_patterns = [
-                r'(Judgment|Decision|Order|Warrant)',
-                r'(Trial|Appeal|Preliminary|Interlocutory)',
-                r'(Indictment|Sentencing|Acquittal|Conviction)'
+                r"(Judgment|Decision|Order|Warrant)",
+                r"(Trial|Appeal|Preliminary|Interlocutory)",
+                r"(Indictment|Sentencing|Acquittal|Conviction)",
             ]
 
             for pattern in type_patterns:
@@ -357,10 +359,10 @@ class LegalToolsScraper(BaseScraper):
             # Extract legal issues (crimes charged)
             legal_issues = []
             crime_patterns = [
-                r'(War crimes|Crimes against humanity|Genocide)',
-                r'(Article \d+[a-z]?)',
-                r'(Grave breaches|Violations of the laws)',
-                r'(Murder|Torture|Persecution|Deportation)'
+                r"(War crimes|Crimes against humanity|Genocide)",
+                r"(Article \d+[a-z]?)",
+                r"(Grave breaches|Violations of the laws)",
+                r"(Murder|Torture|Persecution|Deportation)",
             ]
 
             for pattern in crime_patterns:
@@ -382,9 +384,7 @@ class LegalToolsScraper(BaseScraper):
                 citations=citations,
                 case_type=case_type,
                 jurisdiction=self.jurisdiction,
-                metadata={
-                    'source': 'ICC Legal Tools'
-                }
+                metadata={"source": "ICC Legal Tools"},
             )
 
         except Exception as e:
@@ -418,7 +418,7 @@ def search_cases(
     start_date: Union[str, datetime] = None,
     end_date: Union[str, datetime] = None,
     court: str = None,
-    limit: int = 100
+    limit: int = 100,
 ) -> List[CaseData]:
     """
     Search for cases on ICC Legal Tools Database.
@@ -443,5 +443,5 @@ def search_cases(
             start_date=start_date,
             end_date=end_date,
             court=court,
-            limit=limit
+            limit=limit,
         )

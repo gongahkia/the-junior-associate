@@ -58,14 +58,16 @@ class BaseScraper(ABC):
 
         # Set up session
         self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': user_agent or self._default_user_agent(),
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-        })
+        self.session.headers.update(
+            {
+                "User-Agent": user_agent or self._default_user_agent(),
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.5",
+                "Accept-Encoding": "gzip, deflate",
+                "Connection": "keep-alive",
+                "Upgrade-Insecure-Requests": "1",
+            }
+        )
 
         # Set up logging
         self.logger = setup_logger(f"{self.__class__.__name__}")
@@ -133,7 +135,9 @@ class BaseScraper(ABC):
 
         for attempt in range(self.max_retries + 1):
             try:
-                self.logger.debug(f"Making {method} request to {url} (attempt {attempt + 1})")
+                self.logger.debug(
+                    f"Making {method} request to {url} (attempt {attempt + 1})"
+                )
 
                 response = self.session.request(
                     method=method,
@@ -150,7 +154,7 @@ class BaseScraper(ABC):
                 if response.status_code == 200:
                     return response
                 elif response.status_code == 429:
-                    retry_after = int(response.headers.get('Retry-After', 60))
+                    retry_after = int(response.headers.get("Retry-After", 60))
                     raise RateLimitError(
                         f"Rate limited (429)", retry_after=retry_after, url=url
                     )
@@ -166,7 +170,7 @@ class BaseScraper(ABC):
                             f"Server error {response.status_code}, retrying in "
                             f"{self.retry_delay}s"
                         )
-                        time.sleep(self.retry_delay * (2 ** attempt))
+                        time.sleep(self.retry_delay * (2**attempt))
                         continue
                     else:
                         raise NetworkError(
@@ -183,16 +187,22 @@ class BaseScraper(ABC):
 
             except requests.exceptions.Timeout:
                 if attempt < self.max_retries:
-                    self.logger.warning(f"Request timeout, retrying in {self.retry_delay}s")
-                    time.sleep(self.retry_delay * (2 ** attempt))
+                    self.logger.warning(
+                        f"Request timeout, retrying in {self.retry_delay}s"
+                    )
+                    time.sleep(self.retry_delay * (2**attempt))
                     continue
                 else:
-                    raise NetworkError(f"Request timeout after {self.max_retries} retries", url=url)
+                    raise NetworkError(
+                        f"Request timeout after {self.max_retries} retries", url=url
+                    )
 
             except requests.exceptions.ConnectionError as e:
                 if attempt < self.max_retries:
-                    self.logger.warning(f"Connection error, retrying in {self.retry_delay}s")
-                    time.sleep(self.retry_delay * (2 ** attempt))
+                    self.logger.warning(
+                        f"Connection error, retrying in {self.retry_delay}s"
+                    )
+                    time.sleep(self.retry_delay * (2**attempt))
                     continue
                 else:
                     raise NetworkError(f"Connection failed: {str(e)}", url=url)
@@ -217,10 +227,10 @@ class BaseScraper(ABC):
             ParsingError: If parsing fails
         """
         try:
-            return BeautifulSoup(content, 'lxml')
+            return BeautifulSoup(content, "lxml")
         except Exception as e:
             try:
-                return BeautifulSoup(content, 'html.parser')
+                return BeautifulSoup(content, "html.parser")
             except Exception as e2:
                 raise ParsingError(f"Failed to parse HTML: {str(e2)}") from e2
 
@@ -232,7 +242,7 @@ class BaseScraper(ABC):
         end_date: Union[str, datetime] = None,
         court: str = None,
         limit: int = 100,
-        **kwargs
+        **kwargs,
     ) -> List[CaseData]:
         """
         Search for cases based on criteria.
@@ -264,10 +274,7 @@ class BaseScraper(ABC):
         pass
 
     def get_recent_cases(
-        self,
-        days: int = 30,
-        limit: int = 100,
-        court: str = None
+        self, days: int = 30, limit: int = 100, court: str = None
     ) -> List[CaseData]:
         """
         Get recent cases from the last N days.
@@ -281,21 +288,19 @@ class BaseScraper(ABC):
             List of CaseData objects
         """
         from datetime import timedelta
+
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
 
         return self.search_cases(
-            start_date=start_date,
-            end_date=end_date,
-            limit=limit,
-            court=court
+            start_date=start_date, end_date=end_date, limit=limit, court=court
         )
 
     def validate_search_params(
         self,
         start_date: Union[str, datetime] = None,
         end_date: Union[str, datetime] = None,
-        limit: int = None
+        limit: int = None,
     ) -> Dict[str, Any]:
         """
         Validate and normalize search parameters.
@@ -314,25 +319,25 @@ class BaseScraper(ABC):
         params = {}
 
         if start_date:
-            params['start_date'] = validate_date(start_date)
+            params["start_date"] = validate_date(start_date)
 
         if end_date:
-            params['end_date'] = validate_date(end_date)
+            params["end_date"] = validate_date(end_date)
 
-        if params.get('start_date') and params.get('end_date'):
-            if params['start_date'] > params['end_date']:
+        if params.get("start_date") and params.get("end_date"):
+            if params["start_date"] > params["end_date"]:
                 raise ValueError("Start date must be before end date")
 
         if limit is not None:
             if not isinstance(limit, int) or limit <= 0:
                 raise ValueError("Limit must be a positive integer")
-            params['limit'] = min(limit, 1000)  # Cap at reasonable limit
+            params["limit"] = min(limit, 1000)  # Cap at reasonable limit
 
         return params
 
     def close(self):
         """Close the HTTP session."""
-        if hasattr(self, 'session'):
+        if hasattr(self, "session"):
             self.session.close()
 
     def __enter__(self):

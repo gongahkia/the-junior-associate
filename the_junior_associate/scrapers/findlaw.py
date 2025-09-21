@@ -34,17 +34,17 @@ class FindLawScraper(BaseScraper):
         end_date: Union[str, datetime] = None,
         court: str = None,
         limit: int = 100,
-        **kwargs
+        **kwargs,
     ) -> List[CaseData]:
         """Search for cases on FindLaw."""
         params = self.validate_search_params(start_date, end_date, limit)
 
         search_params = {}
         if query:
-            search_params['q'] = query
+            search_params["q"] = query
 
         url = f"{self.base_url}/us-supreme-court/"
-        if court and court.lower() != 'supreme':
+        if court and court.lower() != "supreme":
             url = f"{self.base_url}/state/"
 
         try:
@@ -54,12 +54,12 @@ class FindLawScraper(BaseScraper):
             raise ParsingError(f"Failed to parse search results: {str(e)}")
 
         cases = []
-        case_links = soup.find_all('a', href=re.compile(r'/case/'))
+        case_links = soup.find_all("a", href=re.compile(r"/case/"))
 
-        for link in case_links[:params.get('limit', 100)]:
+        for link in case_links[: params.get("limit", 100)]:
             try:
-                case_url = link.get('href')
-                if not case_url.startswith('http'):
+                case_url = link.get("href")
+                if not case_url.startswith("http"):
                     case_url = f"{self.base_url}{case_url}"
 
                 case_data = self._scrape_case_from_url(case_url)
@@ -87,7 +87,7 @@ class FindLawScraper(BaseScraper):
 
             # Extract case name
             case_name = ""
-            title_elem = soup.find('h1') or soup.find('title')
+            title_elem = soup.find("h1") or soup.find("title")
             if title_elem:
                 case_name = sanitize_text(title_elem.get_text())
 
@@ -97,12 +97,12 @@ class FindLawScraper(BaseScraper):
             full_text = ""
 
             # Try to extract content
-            content_div = soup.find('div', class_='content') or soup.find('main')
+            content_div = soup.find("div", class_="content") or soup.find("main")
             if content_div:
                 full_text = sanitize_text(content_div.get_text())
 
             # Extract case ID from URL
-            case_id = re.search(r'/case/([^/]+)', url)
+            case_id = re.search(r"/case/([^/]+)", url)
             case_id = case_id.group(1) if case_id else ""
 
             return CaseData(
@@ -113,7 +113,7 @@ class FindLawScraper(BaseScraper):
                 url=url,
                 full_text=full_text,
                 jurisdiction=self.jurisdiction,
-                metadata={'source': 'FindLaw'}
+                metadata={"source": "FindLaw"},
             )
 
         except Exception as e:

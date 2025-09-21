@@ -38,7 +38,7 @@ class SingaporeJudiciaryScraper(BaseScraper):
         end_date: Union[str, datetime] = None,
         court: str = None,
         limit: int = 100,
-        **kwargs
+        **kwargs,
     ) -> List[CaseData]:
         """
         Search for cases on Singapore Judiciary website.
@@ -70,23 +70,23 @@ class SingaporeJudiciaryScraper(BaseScraper):
         search_params = {}
 
         if query:
-            search_params['searchText'] = query
+            search_params["searchText"] = query
 
-        if params.get('start_date'):
-            search_params['startDate'] = params['start_date'].strftime('%Y-%m-%d')
+        if params.get("start_date"):
+            search_params["startDate"] = params["start_date"].strftime("%Y-%m-%d")
 
-        if params.get('end_date'):
-            search_params['endDate'] = params['end_date'].strftime('%Y-%m-%d')
+        if params.get("end_date"):
+            search_params["endDate"] = params["end_date"].strftime("%Y-%m-%d")
 
         if court:
-            search_params['court'] = court
+            search_params["court"] = court
 
-        case_type = kwargs.get('case_type')
+        case_type = kwargs.get("case_type")
         if case_type:
-            search_params['caseType'] = case_type
+            search_params["caseType"] = case_type
 
         # Set results limit
-        search_params['limit'] = min(params.get('limit', 100), 200)
+        search_params["limit"] = min(params.get("limit", 100), 200)
 
         # Make request to search page
         url = f"{self.base_url}/judgment-search"
@@ -101,9 +101,9 @@ class SingaporeJudiciaryScraper(BaseScraper):
         cases = []
 
         # Look for judgment links or case entries
-        judgment_links = soup.find_all('a', href=re.compile(r'/judgment/'))
+        judgment_links = soup.find_all("a", href=re.compile(r"/judgment/"))
 
-        for link in judgment_links[:params.get('limit', 100)]:
+        for link in judgment_links[: params.get("limit", 100)]:
             try:
                 case_data = self._parse_search_result_link(link)
                 if case_data:
@@ -133,9 +133,9 @@ class SingaporeJudiciaryScraper(BaseScraper):
             raise ValueError("Case ID is required")
 
         # Determine URL format
-        if case_id.startswith('http'):
+        if case_id.startswith("http"):
             url = case_id
-        elif case_id.startswith('[') and ']' in case_id:
+        elif case_id.startswith("[") and "]" in case_id:
             # Singapore citation format
             cases = self.search_cases(query=case_id, limit=1)
             if cases:
@@ -160,14 +160,16 @@ class SingaporeJudiciaryScraper(BaseScraper):
         """Parse a search result link into CaseData."""
         try:
             case_name = sanitize_text(link.get_text())
-            case_url = link.get('href')
+            case_url = link.get("href")
 
-            if case_url and not case_url.startswith('http'):
+            if case_url and not case_url.startswith("http"):
                 case_url = f"{self.base_url}{case_url}"
 
             # Extract case ID from case name or URL
             case_id = ""
-            citation_match = re.search(r'\[(\d{4})\]\s+(SGCA|SGHC|SGFC|SGMC)\s+(\d+)', case_name)
+            citation_match = re.search(
+                r"\[(\d{4})\]\s+(SGCA|SGHC|SGFC|SGMC)\s+(\d+)", case_name
+            )
             if citation_match:
                 case_id = f"[{citation_match.group(1)}] {citation_match.group(2)} {citation_match.group(3)}"
 
@@ -177,9 +179,7 @@ class SingaporeJudiciaryScraper(BaseScraper):
                 case_id=case_id,
                 url=case_url,
                 jurisdiction=self.jurisdiction,
-                metadata={
-                    'source': 'Singapore Judiciary'
-                }
+                metadata={"source": "Singapore Judiciary"},
             )
 
         except Exception as e:
@@ -191,13 +191,13 @@ class SingaporeJudiciaryScraper(BaseScraper):
         try:
             # Extract case name from title or heading
             case_name = ""
-            title_elem = soup.find('title')
+            title_elem = soup.find("title")
             if title_elem:
                 case_name = sanitize_text(title_elem.get_text())
 
             # Try h1 if title doesn't work
             if not case_name:
-                h1_elem = soup.find('h1')
+                h1_elem = soup.find("h1")
                 if h1_elem:
                     case_name = sanitize_text(h1_elem.get_text())
 
@@ -208,8 +208,8 @@ class SingaporeJudiciaryScraper(BaseScraper):
 
             # Look for court information
             court_patterns = [
-                r'(Court of Appeal|High Court|State Courts|Family Justice Courts)',
-                r'(SGCA|SGHC|SGFC|SGMC|SGDC)'
+                r"(Court of Appeal|High Court|State Courts|Family Justice Courts)",
+                r"(SGCA|SGHC|SGFC|SGMC|SGDC)",
             ]
 
             page_text = soup.get_text()
@@ -221,9 +221,9 @@ class SingaporeJudiciaryScraper(BaseScraper):
 
             # Look for date patterns
             date_patterns = [
-                r'(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})',
-                r'(\d{4}-\d{2}-\d{2})',
-                r'(\d{1,2}/\d{1,2}/\d{4})'
+                r"(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})",
+                r"(\d{4}-\d{2}-\d{2})",
+                r"(\d{1,2}/\d{1,2}/\d{4})",
             ]
 
             for pattern in date_patterns:
@@ -232,21 +232,21 @@ class SingaporeJudiciaryScraper(BaseScraper):
                     try:
                         # Try different date formats
                         date_str = date_matches[0]
-                        if '-' in date_str:
-                            case_date = datetime.strptime(date_str, '%Y-%m-%d')
-                        elif '/' in date_str:
-                            case_date = datetime.strptime(date_str, '%d/%m/%Y')
+                        if "-" in date_str:
+                            case_date = datetime.strptime(date_str, "%Y-%m-%d")
+                        elif "/" in date_str:
+                            case_date = datetime.strptime(date_str, "%d/%m/%Y")
                         else:
-                            case_date = datetime.strptime(date_str, '%d %B %Y')
+                            case_date = datetime.strptime(date_str, "%d %B %Y")
                         break
                     except ValueError:
                         continue
 
             # Extract citations
             citation_patterns = [
-                r'\[(\d{4})\]\s+(SGCA|SGHC|SGFC|SGMC)\s+(\d+)',
-                r'(\d{4})\s+(SGCA|SGHC|SGFC|SGMC)\s+(\d+)',
-                r'\[(\d{4})\]\s+(\d+)\s+(SLR|MLJ)'
+                r"\[(\d{4})\]\s+(SGCA|SGHC|SGFC|SGMC)\s+(\d+)",
+                r"(\d{4})\s+(SGCA|SGHC|SGFC|SGMC)\s+(\d+)",
+                r"\[(\d{4})\]\s+(\d+)\s+(SLR|MLJ)",
             ]
 
             for pattern in citation_patterns:
@@ -260,18 +260,20 @@ class SingaporeJudiciaryScraper(BaseScraper):
             full_text = ""
             # Look for main content area
             content_selectors = [
-                'div.judgment-content',
-                'div.content',
-                'div#main',
-                'div.main-content',
-                'body'
+                "div.judgment-content",
+                "div.content",
+                "div#main",
+                "div.main-content",
+                "body",
             ]
 
             for selector in content_selectors:
                 content_div = soup.select_one(selector)
                 if content_div:
                     # Remove navigation and other non-content elements
-                    for unwanted in content_div.find_all(['nav', 'header', 'footer', 'script', 'style']):
+                    for unwanted in content_div.find_all(
+                        ["nav", "header", "footer", "script", "style"]
+                    ):
                         unwanted.decompose()
                     full_text = sanitize_text(content_div.get_text())
                     break
@@ -279,14 +281,21 @@ class SingaporeJudiciaryScraper(BaseScraper):
             # Extract judges
             judges = []
             judge_patterns = [
-                r'(?:Justice|Judge|JC)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'([A-Z][a-z]+\s+JA)',
-                r'([A-Z][a-z]+\s+J\.?)'
+                r"(?:Justice|Judge|JC)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"([A-Z][a-z]+\s+JA)",
+                r"([A-Z][a-z]+\s+J\.?)",
             ]
 
             for pattern in judge_patterns:
-                judge_matches = re.findall(pattern, full_text[:3000])  # Look in first part
-                judges.extend([match.replace(' JA', '').replace(' J.', '').replace(' J', '') for match in judge_matches])
+                judge_matches = re.findall(
+                    pattern, full_text[:3000]
+                )  # Look in first part
+                judges.extend(
+                    [
+                        match.replace(" JA", "").replace(" J.", "").replace(" J", "")
+                        for match in judge_matches
+                    ]
+                )
 
             judges = list(set(judges[:5]))  # Limit and dedupe
 
@@ -295,13 +304,15 @@ class SingaporeJudiciaryScraper(BaseScraper):
             if citations:
                 case_id = citations[0]
             else:
-                citation_match = re.search(r'\[(\d{4})\]\s+(SGCA|SGHC|SGFC|SGMC)\s+(\d+)', case_name)
+                citation_match = re.search(
+                    r"\[(\d{4})\]\s+(SGCA|SGHC|SGFC|SGMC)\s+(\d+)", case_name
+                )
                 if citation_match:
                     case_id = f"[{citation_match.group(1)}] {citation_match.group(2)} {citation_match.group(3)}"
 
             # Extract parties
             parties = []
-            party_pattern = r'([A-Z][a-z\s]+(?:Pte\s+Ltd|Ltd|Inc)?)\s+v\s+([A-Z][a-z\s]+(?:Pte\s+Ltd|Ltd|Inc)?)'
+            party_pattern = r"([A-Z][a-z\s]+(?:Pte\s+Ltd|Ltd|Inc)?)\s+v\s+([A-Z][a-z\s]+(?:Pte\s+Ltd|Ltd|Inc)?)"
             party_matches = re.findall(party_pattern, case_name)
             if party_matches:
                 for match in party_matches[0]:
@@ -319,9 +330,7 @@ class SingaporeJudiciaryScraper(BaseScraper):
                 parties=parties,
                 citations=citations,
                 jurisdiction=self.jurisdiction,
-                metadata={
-                    'source': 'Singapore Judiciary'
-                }
+                metadata={"source": "Singapore Judiciary"},
             )
 
         except Exception as e:
@@ -355,7 +364,7 @@ def search_cases(
     start_date: Union[str, datetime] = None,
     end_date: Union[str, datetime] = None,
     court: str = None,
-    limit: int = 100
+    limit: int = 100,
 ) -> List[CaseData]:
     """
     Search for cases on Singapore Judiciary website.
@@ -380,5 +389,5 @@ def search_cases(
             start_date=start_date,
             end_date=end_date,
             court=court,
-            limit=limit
+            limit=limit,
         )

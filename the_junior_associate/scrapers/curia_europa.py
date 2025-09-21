@@ -38,7 +38,7 @@ class CuriaEuropaScraper(BaseScraper):
         end_date: Union[str, datetime] = None,
         court: str = None,
         limit: int = 100,
-        **kwargs
+        **kwargs,
     ) -> List[CaseData]:
         """
         Search for cases on Curia Europa.
@@ -68,38 +68,38 @@ class CuriaEuropaScraper(BaseScraper):
 
         # Build search parameters for Curia
         search_params = {
-            'page': '0',
-            'size': str(min(params.get('limit', 100), 100))  # Curia limit
+            "page": "0",
+            "size": str(min(params.get("limit", 100), 100)),  # Curia limit
         }
 
         if query:
-            search_params['text'] = query
+            search_params["text"] = query
 
-        if params.get('start_date'):
-            search_params['DD_date_start'] = params['start_date'].strftime('%d/%m/%Y')
+        if params.get("start_date"):
+            search_params["DD_date_start"] = params["start_date"].strftime("%d/%m/%Y")
 
-        if params.get('end_date'):
-            search_params['DD_date_end'] = params['end_date'].strftime('%d/%m/%Y')
+        if params.get("end_date"):
+            search_params["DD_date_end"] = params["end_date"].strftime("%d/%m/%Y")
 
         if court:
             # Map court names to Curia codes
             court_mapping = {
-                'CJEU': 'CJ',
-                'Court of Justice': 'CJ',
-                'GC': 'GC',
-                'General Court': 'GC',
-                'CST': 'CST'
+                "CJEU": "CJ",
+                "Court of Justice": "CJ",
+                "GC": "GC",
+                "General Court": "GC",
+                "CST": "CST",
             }
-            search_params['court'] = court_mapping.get(court, court)
+            search_params["court"] = court_mapping.get(court, court)
 
         # Language preference
-        language = kwargs.get('language', 'en')
-        search_params['lang'] = language
+        language = kwargs.get("language", "en")
+        search_params["lang"] = language
 
         # Case type filter
-        case_type = kwargs.get('case_type')
+        case_type = kwargs.get("case_type")
         if case_type:
-            search_params['type'] = case_type
+            search_params["type"] = case_type
 
         # Make request to search page
         url = f"{self.base_url}/juris/liste.jsf"
@@ -114,9 +114,9 @@ class CuriaEuropaScraper(BaseScraper):
         cases = []
 
         # Look for case links in search results
-        case_links = soup.find_all('a', href=re.compile(r'/juris/document/'))
+        case_links = soup.find_all("a", href=re.compile(r"/juris/document/"))
 
-        for link in case_links[:params.get('limit', 100)]:
+        for link in case_links[: params.get("limit", 100)]:
             try:
                 case_data = self._parse_search_result_link(link)
                 if case_data:
@@ -146,9 +146,9 @@ class CuriaEuropaScraper(BaseScraper):
             raise ValueError("Case ID is required")
 
         # Determine URL format
-        if case_id.startswith('http'):
+        if case_id.startswith("http"):
             url = case_id
-        elif re.match(r'[CT]-\d+/\d+', case_id):
+        elif re.match(r"[CT]-\d+/\d+", case_id):
             # EU case number format
             cases = self.search_cases(query=case_id, limit=1)
             if cases:
@@ -173,14 +173,14 @@ class CuriaEuropaScraper(BaseScraper):
         """Parse a search result link into CaseData."""
         try:
             case_name = sanitize_text(link.get_text())
-            case_url = link.get('href')
+            case_url = link.get("href")
 
-            if case_url and not case_url.startswith('http'):
+            if case_url and not case_url.startswith("http"):
                 case_url = f"{self.base_url}{case_url}"
 
             # Extract case ID from case name or URL
             case_id = ""
-            case_number_match = re.search(r'([CT]-\d+/\d+)', case_name)
+            case_number_match = re.search(r"([CT]-\d+/\d+)", case_name)
             if case_number_match:
                 case_id = case_number_match.group(1)
 
@@ -190,9 +190,7 @@ class CuriaEuropaScraper(BaseScraper):
                 case_id=case_id,
                 url=case_url,
                 jurisdiction=self.jurisdiction,
-                metadata={
-                    'source': 'Curia Europa'
-                }
+                metadata={"source": "Curia Europa"},
             )
 
         except Exception as e:
@@ -204,13 +202,13 @@ class CuriaEuropaScraper(BaseScraper):
         try:
             # Extract case name from title or heading
             case_name = ""
-            title_elem = soup.find('title')
+            title_elem = soup.find("title")
             if title_elem:
                 case_name = sanitize_text(title_elem.get_text())
 
             # Try h1 if title doesn't work
             if not case_name:
-                h1_elem = soup.find('h1')
+                h1_elem = soup.find("h1")
                 if h1_elem:
                     case_name = sanitize_text(h1_elem.get_text())
 
@@ -221,8 +219,8 @@ class CuriaEuropaScraper(BaseScraper):
 
             # Look for court information
             court_patterns = [
-                r'(Court of Justice|General Court|Civil Service Tribunal)',
-                r'(CJEU|CJ|GC|CST)'
+                r"(Court of Justice|General Court|Civil Service Tribunal)",
+                r"(CJEU|CJ|GC|CST)",
             ]
 
             page_text = soup.get_text()
@@ -234,9 +232,9 @@ class CuriaEuropaScraper(BaseScraper):
 
             # Look for date patterns
             date_patterns = [
-                r'(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})',
-                r'(\d{1,2}/\d{1,2}/\d{4})',
-                r'(\d{4}-\d{2}-\d{2})'
+                r"(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})",
+                r"(\d{1,2}/\d{1,2}/\d{4})",
+                r"(\d{4}-\d{2}-\d{2})",
             ]
 
             for pattern in date_patterns:
@@ -245,22 +243,22 @@ class CuriaEuropaScraper(BaseScraper):
                     try:
                         # Try different date formats
                         date_str = date_matches[0]
-                        if '-' in date_str:
-                            case_date = datetime.strptime(date_str, '%Y-%m-%d')
-                        elif '/' in date_str:
-                            case_date = datetime.strptime(date_str, '%d/%m/%Y')
+                        if "-" in date_str:
+                            case_date = datetime.strptime(date_str, "%Y-%m-%d")
+                        elif "/" in date_str:
+                            case_date = datetime.strptime(date_str, "%d/%m/%Y")
                         else:
-                            case_date = datetime.strptime(date_str, '%d %B %Y')
+                            case_date = datetime.strptime(date_str, "%d %B %Y")
                         break
                     except ValueError:
                         continue
 
             # Extract case numbers and citations
             citation_patterns = [
-                r'Case\s+([CT]-\d+/\d+)',
-                r'Joined\s+Cases\s+([CT]-\d+/\d+\s+(?:and|to)\s+[CT]-\d+/\d+)',
-                r'([CT]-\d+/\d+)',
-                r'ECLI:EU:[CT]:\d{4}:\d+'
+                r"Case\s+([CT]-\d+/\d+)",
+                r"Joined\s+Cases\s+([CT]-\d+/\d+\s+(?:and|to)\s+[CT]-\d+/\d+)",
+                r"([CT]-\d+/\d+)",
+                r"ECLI:EU:[CT]:\d{4}:\d+",
             ]
 
             for pattern in citation_patterns:
@@ -272,18 +270,20 @@ class CuriaEuropaScraper(BaseScraper):
             full_text = ""
             # Look for main content area
             content_selectors = [
-                'div.document-content',
-                'div.judgment-content',
-                'div.content',
-                'div#main',
-                'body'
+                "div.document-content",
+                "div.judgment-content",
+                "div.content",
+                "div#main",
+                "body",
             ]
 
             for selector in content_selectors:
                 content_div = soup.select_one(selector)
                 if content_div:
                     # Remove navigation and other non-content elements
-                    for unwanted in content_div.find_all(['nav', 'header', 'footer', 'script', 'style']):
+                    for unwanted in content_div.find_all(
+                        ["nav", "header", "footer", "script", "style"]
+                    ):
                         unwanted.decompose()
                     full_text = sanitize_text(content_div.get_text())
                     break
@@ -291,14 +291,16 @@ class CuriaEuropaScraper(BaseScraper):
             # Extract judges and advocates general
             judges = []
             judge_patterns = [
-                r'Judge\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'President\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'Advocate\s+General\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
-                r'Rapporteur:\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)'
+                r"Judge\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"President\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"Advocate\s+General\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+                r"Rapporteur:\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
             ]
 
             for pattern in judge_patterns:
-                judge_matches = re.findall(pattern, full_text[:3000])  # Look in first part
+                judge_matches = re.findall(
+                    pattern, full_text[:3000]
+                )  # Look in first part
                 judges.extend(judge_matches)
 
             judges = list(set(judges[:5]))  # Limit and dedupe
@@ -308,15 +310,15 @@ class CuriaEuropaScraper(BaseScraper):
             if citations:
                 case_id = citations[0]
             else:
-                case_number_match = re.search(r'([CT]-\d+/\d+)', case_name)
+                case_number_match = re.search(r"([CT]-\d+/\d+)", case_name)
                 if case_number_match:
                     case_id = case_number_match.group(1)
 
             # Extract parties
             parties = []
             party_patterns = [
-                r'([A-Z][a-z\s]+(?:Ltd|SA|GmbH|SpA)?)\s+v\s+([A-Z][a-z\s]+(?:Ltd|SA|GmbH|SpA)?)',
-                r'([A-Z][a-z\s]+)\s+v\.\s+([A-Z][a-z\s]+)'
+                r"([A-Z][a-z\s]+(?:Ltd|SA|GmbH|SpA)?)\s+v\s+([A-Z][a-z\s]+(?:Ltd|SA|GmbH|SpA)?)",
+                r"([A-Z][a-z\s]+)\s+v\.\s+([A-Z][a-z\s]+)",
             ]
 
             for pattern in party_patterns:
@@ -329,7 +331,7 @@ class CuriaEuropaScraper(BaseScraper):
 
             # Extract legal issues/subject matter
             legal_issues = []
-            subject_pattern = r'Subject-matter:\s*([^.]+)'
+            subject_pattern = r"Subject-matter:\s*([^.]+)"
             subject_matches = re.findall(subject_pattern, page_text)
             if subject_matches:
                 legal_issues = [issue.strip() for issue in subject_matches[:3]]
@@ -346,9 +348,7 @@ class CuriaEuropaScraper(BaseScraper):
                 legal_issues=legal_issues,
                 citations=citations,
                 jurisdiction=self.jurisdiction,
-                metadata={
-                    'source': 'Curia Europa'
-                }
+                metadata={"source": "Curia Europa"},
             )
 
         except Exception as e:
@@ -382,7 +382,7 @@ def search_cases(
     start_date: Union[str, datetime] = None,
     end_date: Union[str, datetime] = None,
     court: str = None,
-    limit: int = 100
+    limit: int = 100,
 ) -> List[CaseData]:
     """
     Search for cases on Curia Europa.
@@ -407,5 +407,5 @@ def search_cases(
             start_date=start_date,
             end_date=end_date,
             court=court,
-            limit=limit
+            limit=limit,
         )
