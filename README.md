@@ -5,23 +5,6 @@
 The Junior Associate is a polished and accessible Python library that aggregates a collection of lightweight scrapers targeted at various legal case law websites spanning multiple jurisdictions. Designed for legal researchers, practitioners, and developers, this library delivers easy-to-use programmatic access to scrape case judgments from key public legal databases around the world. Each scraper features simple APIs documented with code snippet examples, robust error handling, and is packaged for seamless integration into research workflows or applications.
 
 ## Supported Legal Sites  
-- courtlistener.com — CourtListener (Free US federal and state case law database)  
-- findlaw.com — FindLaw (US Supreme Court and state case law collection)  
-- austlii.edu.au — Australasian Legal Information Institute (Australian Commonwealth and state courts case law)  
-- canlii.org — Canadian Legal Information Institute (Canadian federal and provincial case law)  
-- bailii.org — British and Irish Legal Information Institute (UK and Ireland court judgments)  
-- judiciary.gov.sg — Singapore Judiciary (Official Singapore court case judgments)  
-- indiankanoon.org — Indian Kanoon (Free access to Indian federal and state court judgments)  
-- hklawlib.org.hk/hklii — Hong Kong Legal Information Institute (HK appellate and tribunal case law)  
-- legifrance.gouv.fr — Légifrance (French Supreme and administrative court decisions)  
-- germanlawarchive.iuscomp.org — German Law Archive (Selected German court judgments in English)  
-- curia.europa.eu — European Court of Justice (EU law cases and judgments)  
-- worldlii.org — World Legal Information Institute (Global LII case law search)  
-- worldcourts.com — WorldCourts (International case law database with many jurisdictions)  
-- supremecourt.gov.in — Supreme Court of India (Official Indian Supreme Court judgments)  
-- kenyalaw.org — Kenya Law Online (Kenyan court case law and statutes)  
-- supremecourt.japan.go.jp — Supreme Court of Japan (Japanese Supreme Court judgments in English)  
-- legal-tools.org — ICC Legal Tools Database (International crimes case law database)  
 
 ## Installation  
 ```bash
@@ -111,7 +94,26 @@ Try it out, contribute, and help empower legal research with Python!
 
 ## Support
 
-...
+> FUA reformat this into a table with the columns Source | Site | Description | Support |
+
+- courtlistener.com — CourtListener (Free US federal and state case law database)  
+- findlaw.com — FindLaw (US Supreme Court and state case law collection)  
+- austlii.edu.au — Australasian Legal Information Institute (Australian Commonwealth and state courts case law) 
+- canlii.org — Canadian Legal Information Institute (Canadian federal and provincial case law)  
+- bailii.org — British and Irish Legal Information Institute (UK and Ireland court judgments)  
+- judiciary.gov.sg — Singapore Judiciary (Official Singapore court case judgments)  
+- indiankanoon.org — Indian Kanoon (Free access to Indian federal and state court judgments)  
+- hklawlib.org.hk/hklii — Hong Kong Legal Information Institute (HK appellate and tribunal case law)  
+- legifrance.gouv.fr — Légifrance (French Supreme and administrative court decisions)  
+- germanlawarchive.iuscomp.org — German Law Archive (Selected German court judgments in English)  
+- curia.europa.eu — European Court of Justice (EU law cases and judgments)  
+- worldlii.org — World Legal Information Institute (Global LII case law search)  
+- worldcourts.com — WorldCourts (International case law database with many jurisdictions)  
+- supremecourt.gov.in — Supreme Court of India (Official Indian Supreme Court judgments)  
+- kenyalaw.org — Kenya Law Online (Kenyan court case law and statutes)  
+- supremecourt.japan.go.jp — Supreme Court of Japan (Japanese Supreme Court judgments in English)  
+- legal-tools.org — ICC Legal Tools Database (International crimes case law database)  
+
 
 ## Architecture
 
