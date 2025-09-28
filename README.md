@@ -1,15 +1,8 @@
 [![](https://img.shields.io/badge/the_junior_associate_1.0.0-passing-green)](https://github.com/gongahkia/the-junior-associate/releases/tag/1.0.0)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> [!NOTE]
-> `The Junior Associate` is a comprehensive Python library for legal case law scraping designed for researchers, practitioners, and developers.
+# `The Junior Associate`
 
-# `The Junior Associate` ⚖️
-
-`The Junior Associate` is a [polished](#architecture) Python library that provides [easy-to-use scrapers](#usage) for legal case law from [multiple jurisdictions](#support) worldwide.
-
-It serves [Legal Research](#features) with [Unified API](#features), [Error Handling](https://docs.python.org/3/tutorial/errors.html), [Multi-jurisdiction Coverage](#support) and [Command Line Interface](#usage).
+`The Junior Associate` is a [complete Python library](#architecture) that provides a [bundle of scrapers](#usage) for legal case law from [various jurisdictions](#support) worldwide.
 
 ## Stack
 
@@ -22,7 +15,99 @@ It serves [Legal Research](#features) with [Unified API](#features), [Error Hand
 * *Package*: [setuptools](https://setuptools.pypa.io/)
 * *Testing*: [pytest](https://docs.pytest.org/), [pytest-cov](https://pytest-cov.readthedocs.io/)
 * *Linting*: [black](https://black.readthedocs.io/), [flake8](https://flake8.pycqa.org/), [mypy](https://mypy.readthedocs.io/)
-* *Pre-commit*: [pre-commit](https://pre-commit.com/)
+
+## Architecture
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#fff5e6', 'edgeLabelBackground':'#fff'}}}%%
+flowchart TD
+    classDef tests fill:#D1E0FF,stroke:#333;
+    classDef scrapers fill:#D1FFD1,stroke:#333;
+    classDef utils fill:#FFFFD1,stroke:#333;
+    classDef root fill:#FFD1D1,stroke:#333;
+
+    subgraph ROOT["the-junior-associate (Root)"]
+        direction TB
+        setup["setup.py"]:::root
+        pyproject["pyproject.toml"]:::root
+        requirements["requirements.txt"]:::root
+        manifest["MANIFEST.in"]:::root
+    end
+
+    subgraph PACKAGE["the_junior_associate/"]
+        direction TB
+        __init__["__init__.py"]
+        cli["cli.py"]
+
+        subgraph SCRAPERS["scrapers/"]
+            direction TB
+            __init_scrapers["__init__.py"]
+            courtlistener["courtlistener.py"]
+            findlaw["findlaw.py"]
+            canlii["canlii.py"]
+            austlii["austlii.py"]
+            bailii["bailii.py"]
+            singapore["singapore_judiciary.py"]
+            indian_kanoon["indian_kanoon.py"]
+            hklii["hklii.py"]
+            legifrance["legifrance.py"]
+            german["german_law_archive.py"]
+            curia["curia_europa.py"]
+            worldlii["worldlii.py"]
+            worldcourts["worldcourts.py"]
+            supreme_india["supremecourt_india.py"]
+            kenya["kenya_law.py"]
+            supreme_japan["supremecourt_japan.py"]
+            legal_tools["legal_tools.py"]
+        end
+
+        subgraph UTILS["utils/"]
+            direction TB
+            __init_utils["__init__.py"]
+            base["base.py"]
+            data_models["data_models.py"]
+            exceptions["exceptions.py"]
+            helpers["helpers.py"]
+        end
+    end
+
+    subgraph TESTS["tests/"]
+        direction TB
+        conftest["conftest.py"]
+        test_scrapers["test_scrapers/"]
+        test_utils["test_utils/"]
+        integration["integration/"]
+    end
+
+    %% Relations
+    cli --> courtlistener
+    cli --> canlii
+    cli --> austlii
+    cli --> bailii
+
+    courtlistener --> base
+    canlii --> base
+    austlii --> base
+    bailii --> base
+    singapore --> base
+    indian_kanoon --> base
+
+    base --> data_models
+    base --> exceptions
+    base --> helpers
+
+    test_scrapers --> courtlistener
+    test_scrapers --> canlii
+    test_utils --> base
+    integration --> cli
+
+    %% Class assignments
+    class setup,pyproject,requirements,manifest root
+    class __init,cli scrapers
+    class courtlistener,findlaw,canlii,austlii,bailii,singapore,indian_kanoon,hklii,legifrance,german,curia,worldlii,worldcourts,supreme_india,kenya,supreme_japan,legal_tools scrapers
+    class base,data_models,exceptions,helpers utils
+    class conftest,test_scrapers,test_utils,integration tests
+```
 
 ## Usage
 
@@ -145,96 +230,3 @@ with IndianKanoonScraper() as scraper:
 | [Kenya Law](./the_junior_associate/scrapers/kenya_law.py) | Kenya | Kenyan Court Cases | ✅ Active |
 | [Supreme Court of Japan](./the_junior_associate/scrapers/supremecourt_japan.py) | Japan | Japanese Supreme Court | ✅ Active |
 | [ICC Legal Tools](./the_junior_associate/scrapers/legal_tools.py) | International | International Criminal Law | ✅ Active |
-
-## Architecture
-
-```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#fff5e6', 'edgeLabelBackground':'#fff'}}}%%
-flowchart TD
-    classDef tests fill:#D1E0FF,stroke:#333;
-    classDef scrapers fill:#D1FFD1,stroke:#333;
-    classDef utils fill:#FFFFD1,stroke:#333;
-    classDef root fill:#FFD1D1,stroke:#333;
-
-    subgraph ROOT["the-junior-associate (Root)"]
-        direction TB
-        setup["setup.py"]:::root
-        pyproject["pyproject.toml"]:::root
-        requirements["requirements.txt"]:::root
-        manifest["MANIFEST.in"]:::root
-    end
-
-    subgraph PACKAGE["the_junior_associate/"]
-        direction TB
-        __init__["__init__.py"]
-        cli["cli.py"]
-
-        subgraph SCRAPERS["scrapers/"]
-            direction TB
-            __init_scrapers["__init__.py"]
-            courtlistener["courtlistener.py"]
-            findlaw["findlaw.py"]
-            canlii["canlii.py"]
-            austlii["austlii.py"]
-            bailii["bailii.py"]
-            singapore["singapore_judiciary.py"]
-            indian_kanoon["indian_kanoon.py"]
-            hklii["hklii.py"]
-            legifrance["legifrance.py"]
-            german["german_law_archive.py"]
-            curia["curia_europa.py"]
-            worldlii["worldlii.py"]
-            worldcourts["worldcourts.py"]
-            supreme_india["supremecourt_india.py"]
-            kenya["kenya_law.py"]
-            supreme_japan["supremecourt_japan.py"]
-            legal_tools["legal_tools.py"]
-        end
-
-        subgraph UTILS["utils/"]
-            direction TB
-            __init_utils["__init__.py"]
-            base["base.py"]
-            data_models["data_models.py"]
-            exceptions["exceptions.py"]
-            helpers["helpers.py"]
-        end
-    end
-
-    subgraph TESTS["tests/"]
-        direction TB
-        conftest["conftest.py"]
-        test_scrapers["test_scrapers/"]
-        test_utils["test_utils/"]
-        integration["integration/"]
-    end
-
-    %% Relations
-    cli --> courtlistener
-    cli --> canlii
-    cli --> austlii
-    cli --> bailii
-
-    courtlistener --> base
-    canlii --> base
-    austlii --> base
-    bailii --> base
-    singapore --> base
-    indian_kanoon --> base
-
-    base --> data_models
-    base --> exceptions
-    base --> helpers
-
-    test_scrapers --> courtlistener
-    test_scrapers --> canlii
-    test_utils --> base
-    integration --> cli
-
-    %% Class assignments
-    class setup,pyproject,requirements,manifest root
-    class __init,cli scrapers
-    class courtlistener,findlaw,canlii,austlii,bailii,singapore,indian_kanoon,hklii,legifrance,german,curia,worldlii,worldcourts,supreme_india,kenya,supreme_japan,legal_tools scrapers
-    class base,data_models,exceptions,helpers utils
-    class conftest,test_scrapers,test_utils,integration tests
-```
