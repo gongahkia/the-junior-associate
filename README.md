@@ -1,126 +1,232 @@
-# Prompt to Claude Code
-
-```txt
-## Project Overview  
-The Junior Associate is a polished and accessible Python library that aggregates a collection of lightweight scrapers targeted at various legal case law websites spanning multiple jurisdictions. Designed for legal researchers, practitioners, and developers, this library delivers easy-to-use programmatic access to scrape case judgments from key public legal databases around the world. Each scraper features simple APIs documented with code snippet examples, robust error handling, and is packaged for seamless integration into research workflows or applications.
-
-## Supported Legal Sites  
-- courtlistener.com — CourtListener (Free US federal and state case law database)  
-- findlaw.com — FindLaw (US Supreme Court and state case law collection)  
-- austlii.edu.au — Australasian Legal Information Institute (Australian Commonwealth and state courts case law)  
-- canlii.org — Canadian Legal Information Institute (Canadian federal and provincial case law)  
-- bailii.org — British and Irish Legal Information Institute (UK and Ireland court judgments)  
-- judiciary.gov.sg — Singapore Judiciary (Official Singapore court case judgments)  
-- indiankanoon.org — Indian Kanoon (Free access to Indian federal and state court judgments)  
-- hklawlib.org.hk/hklii — Hong Kong Legal Information Institute (HK appellate and tribunal case law)  
-- legifrance.gouv.fr — Légifrance (French Supreme and administrative court decisions)  
-- germanlawarchive.iuscomp.org — German Law Archive (Selected German court judgments in English)  
-- curia.europa.eu — European Court of Justice (EU law cases and judgments)  
-- worldlii.org — World Legal Information Institute (Global LII case law search)  
-- worldcourts.com — WorldCourts (International case law database with many jurisdictions)  
-- supremecourt.gov.in — Supreme Court of India (Official Indian Supreme Court judgments)  
-- kenyalaw.org — Kenya Law Online (Kenyan court case law and statutes)  
-- supremecourt.japan.go.jp — Supreme Court of Japan (Japanese Supreme Court judgments in English)  
-- legal-tools.org — ICC Legal Tools Database (International crimes case law database)  
-
-## Installation  
-```bash
-pip install The Junior Associate
-```
-
-## Usage Examples  
-
-```python
-from The Junior Associate.courtlistener import fetch_recent_cases
-
-cases = fetch_recent_cases(start_date="2023-01-01")
-for case in cases:
-    print(case["case_name"], case["date"], case["url"])
-```
-
-```python
-from The Junior Associate.canlii import get_case_by_id
-
-case_text = get_case_by_id("ONCA_2023_123")
-print(case_text)
-```
-
-## Features  
-- Lightweight, focused scrapers per jurisdiction and site.  
-- Easy-to-use Python functions with consistent API design.  
-- Examples provided in documentation to quickly integrate into research projects.  
-- Robust scraping with retry and rate-limiting features.  
-- Modular architecture easing extension or addition of new scrapers.  
-
-## Technical Details  
-- Requires Python 3.9+  
-- Uses requests and BeautifulSoup4 for HTML parsing.  
-- Supports JSON and XML parsing for APIs when available.  
-- Clear logging and error management.  
-- Packaged with setuptools for easy installation.  
-
-## Development and Testing  
-- Unit tests use pytest.  
-- CI/CD pipeline ensures scraper stability against site layout changes.  
-
-## Notes for Claude Code  
-- Generate a multi-file Python package with one module per site scraper.  
-- Include comprehensive README in markdown with usage and code snippets.  
-- Implement main scraping logic, error handling, and example scripts for each site.  
-- Provide setup.py, requirements.txt, and test suite configuration for easy packaging.  
-- Document scraping target URLs and expected data extracted. 
-```
-
-# Sample Linkedin Post
-
-```txt
-Excited to announce The Junior Associate — a polished Python library offering tiny, ready-to-use scrapers for legal case law websites across multiple jurisdictions! ⚖️🐍
-
-Whether you're a researcher, lawyer, or developer, The Junior Associate provides easy access to scrape case judgments from key public legal portals like CourtListener, AustLII, CanLII, BAILII, Singapore Judiciary, Indian Kanoon, and more.
-
-With simple APIs and comprehensive code examples, it’s designed to accelerate legal data collection and research automation.
-
-The library embraces modularity, robustness, and community contribution to grow as the go-to legal case scraper toolkit.
-
-Try it out, contribute, and help empower legal research with Python!
-
-#LegalTech #Python #WebScraping #OpenSource #LawResearch #DataScience #LegalAI #The Junior Associate
-```
-
-[![](https://img.shields.io/badge/the_junior_associate_1.0.0-passing-green)](https://github.com/gongahkia/the-junior-associate/releases/tag/1.0.0) 
+[![](https://img.shields.io/badge/the_junior_associate_1.0.0-passing-green)](https://github.com/gongahkia/the-junior-associate/releases/tag/1.0.0)
 
 # `The Junior Associate`
 
-...
-
-## Rationale
-
-...
+`The Junior Associate` is a [complete Python library](#architecture) that provides a [bundle of scrapers](#usage) for legal case law from [various jurisdictions](#support) worldwide.
 
 ## Stack
 
-...
-
-## Screenshots
-
-...
-
-## Usage
-
-...
-
-## Support
-
-...
+* *Language*: [Python](https://www.python.org/)
+    * *HTTP Requests*: [requests](https://docs.python-requests.org/), [urllib3](https://urllib3.readthedocs.io/)
+    * *HTML Parsing*: [BeautifulSoup4](https://www.crummy.com/software/BeautifulSoup/), [lxml](https://lxml.de/)
+    * *Date Handling*: [python-dateutil](https://dateutil.readthedocs.io/)
+    * *Text Processing*: [charset-normalizer](https://charset-normalizer.readthedocs.io/)
+* *CLI*: [argparse](https://docs.python.org/3/library/argparse.html)
+* *Package*: [setuptools](https://setuptools.pypa.io/)
+* *Testing*: [pytest](https://docs.pytest.org/), [pytest-cov](https://pytest-cov.readthedocs.io/)
+* *Linting*: [black](https://black.readthedocs.io/), [flake8](https://flake8.pycqa.org/), [mypy](https://mypy.readthedocs.io/)
 
 ## Architecture
 
-...
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#fff5e6', 'edgeLabelBackground':'#fff'}}}%%
+flowchart TD
+    classDef tests fill:#D1E0FF,stroke:#333;
+    classDef scrapers fill:#D1FFD1,stroke:#333;
+    classDef utils fill:#FFFFD1,stroke:#333;
+    classDef root fill:#FFD1D1,stroke:#333;
 
-## Legal
+    subgraph ROOT["the-junior-associate (Root)"]
+        direction TB
+        setup["setup.py"]:::root
+        pyproject["pyproject.toml"]:::root
+        requirements["requirements.txt"]:::root
+        manifest["MANIFEST.in"]:::root
+    end
 
-...
+    subgraph PACKAGE["the_junior_associate/"]
+        direction TB
+        __init__["__init__.py"]
+        cli["cli.py"]
 
-## Reference
+        subgraph SCRAPERS["scrapers/"]
+            direction TB
+            __init_scrapers["__init__.py"]
+            courtlistener["courtlistener.py"]
+            findlaw["findlaw.py"]
+            canlii["canlii.py"]
+            austlii["austlii.py"]
+            bailii["bailii.py"]
+            singapore["singapore_judiciary.py"]
+            indian_kanoon["indian_kanoon.py"]
+            hklii["hklii.py"]
+            legifrance["legifrance.py"]
+            german["german_law_archive.py"]
+            curia["curia_europa.py"]
+            worldlii["worldlii.py"]
+            worldcourts["worldcourts.py"]
+            supreme_india["supremecourt_india.py"]
+            kenya["kenya_law.py"]
+            supreme_japan["supremecourt_japan.py"]
+            legal_tools["legal_tools.py"]
+        end
 
-... Name is in reference to the show Suits
+        subgraph UTILS["utils/"]
+            direction TB
+            __init_utils["__init__.py"]
+            base["base.py"]
+            data_models["data_models.py"]
+            exceptions["exceptions.py"]
+            helpers["helpers.py"]
+        end
+    end
+
+    subgraph TESTS["tests/"]
+        direction TB
+        conftest["conftest.py"]
+        test_scrapers["test_scrapers/"]
+        test_utils["test_utils/"]
+        integration["integration/"]
+    end
+
+    %% Relations
+    cli --> courtlistener
+    cli --> canlii
+    cli --> austlii
+    cli --> bailii
+
+    courtlistener --> base
+    canlii --> base
+    austlii --> base
+    bailii --> base
+    singapore --> base
+    indian_kanoon --> base
+
+    base --> data_models
+    base --> exceptions
+    base --> helpers
+
+    test_scrapers --> courtlistener
+    test_scrapers --> canlii
+    test_utils --> base
+    integration --> cli
+
+    %% Class assignments
+    class setup,pyproject,requirements,manifest root
+    class __init,cli scrapers
+    class courtlistener,findlaw,canlii,austlii,bailii,singapore,indian_kanoon,hklii,legifrance,german,curia,worldlii,worldcourts,supreme_india,kenya,supreme_japan,legal_tools scrapers
+    class base,data_models,exceptions,helpers utils
+    class conftest,test_scrapers,test_utils,integration tests
+```
+
+## Usage
+
+The below instructions are for running `The Junior Associate` on your client machine.
+
+1. Execute the below.
+
+```console
+$ git clone https://github.com/gongahkia/the-junior-associate && cd the-junior-associate
+```
+
+2. To use `The Junior Associate` [CLI](./the_junior_associate/cli.py), run the below.
+
+```console
+$ junior-associate search courtlistener "constitutional law" --limit 5
+```
+
+3. Alternatively, install from PyPI for library usage.
+
+```console
+$ pip install the-junior-associate
+```
+
+4. Most commonly, you would include `The Junior Associate` directly as a [Library](https://docs.python.org/3/library/index.html) within your projects.
+
+### [Search](./the_junior_associate/scrapers/) Cases Across Jurisdictions
+
+```py
+from the_junior_associate import CourtListenerScraper
+
+with CourtListenerScraper() as scraper:
+    cases = scraper.search_cases(
+        query="privacy rights",
+        start_date="2023-01-01",
+        limit=10
+    )
+
+    for case in cases:
+        print(f"{case.case_name} - {case.date}")
+        print(f"Court: {case.court}")
+        print(f"URL: {case.url}")
+```
+
+### [Retrieve](./the_junior_associate/scrapers/) Specific Cases by ID
+
+```py
+from the_junior_associate import CanLIIScraper
+
+with CanLIIScraper() as scraper:
+    case = scraper.get_case_by_id("2023 SCC 15")
+    print(f"Case: {case.case_name}")
+    print(f"Judges: {', '.join(case.judges)}")
+```
+
+### [Multi-jurisdiction](./the_junior_associate/scrapers/) Research
+
+```py
+from the_junior_associate import CourtListenerScraper, BAILIIScraper, AustLIIScraper
+
+scrapers = [
+    ("US", CourtListenerScraper()),
+    ("UK", BAILIIScraper()),
+    ("AU", AustLIIScraper())
+]
+
+query = "data protection"
+all_cases = []
+
+for jurisdiction, scraper in scrapers:
+    with scraper:
+        cases = scraper.search_cases(query=query, limit=5)
+        for case in cases:
+            case.metadata["jurisdiction"] = jurisdiction
+            all_cases.append(case)
+```
+
+### [Batch Process](./the_junior_associate/utils/) with Error Handling
+
+```py
+from the_junior_associate import IndianKanoonScraper
+import logging
+
+case_ids = ["AIR 2023 SC 1234", "AIR 2023 SC 5678"]
+
+with IndianKanoonScraper() as scraper:
+    for case_id in case_ids:
+        try:
+            case = scraper.get_case_by_id(case_id)
+            if case:
+                print(f"Retrieved: {case.case_name}")
+        except Exception as e:
+            logging.error(f"Failed to retrieve {case_id}: {e}")
+```
+
+## Support
+
+> [!NOTE]
+> Each jurisdiction's scraper handles document types such as court decisions, judgments, and case law which can be viewed [here](./the_junior_associate/scrapers/).
+>
+> To get a new jurisdiction **added** or to **suggest improvements** to existing scrapers, please [open an issue](https://github.com/gongahkia/the-junior-associate/issues).
+
+`The Junior Associate`'s [jurisdiction](https://dictionary.cambridge.org/dictionary/english/jurisdiction)-aware scrapers currently support the following legal databases.
+
+| Database | Jurisdiction | Coverage | Status |
+|----------|-------------|----------|---------|
+| [CourtListener](./the_junior_associate/scrapers/courtlistener.py) | United States | Federal & State Courts | ✅ Active |
+| [FindLaw](./the_junior_associate/scrapers/findlaw.py) | United States | Supreme Court & State Law | ✅ Active |
+| [AustLII](./the_junior_associate/scrapers/austlii.py) | Australia/New Zealand | Commonwealth & State Courts | ✅ Active |
+| [CanLII](./the_junior_associate/scrapers/canlii.py) | Canada | Federal & Provincial Courts | ✅ Active |
+| [BAILII](./the_junior_associate/scrapers/bailii.py) | UK & Ireland | All UK & Irish Courts | ✅ Active |
+| [Singapore Judiciary](./the_junior_associate/scrapers/singapore_judiciary.py) | Singapore | Official Court Judgments | ✅ Active |
+| [Indian Kanoon](./the_junior_associate/scrapers/indian_kanoon.py) | India | Federal & State Courts | ✅ Active |
+| [HKLII](./the_junior_associate/scrapers/hklii.py) | Hong Kong | Appellate & Tribunal Cases | ✅ Active |
+| [Légifrance](./the_junior_associate/scrapers/legifrance.py) | France | Supreme & Administrative Courts | ✅ Active |
+| [German Law Archive](./the_junior_associate/scrapers/german_law_archive.py) | Germany | Selected Federal Court Cases | ✅ Active |
+| [Curia Europa](./the_junior_associate/scrapers/curia_europa.py) | European Union | ECJ & General Court | ✅ Active |
+| [WorldLII](./the_junior_associate/scrapers/worldlii.py) | International | Global Legal Databases | ✅ Active |
+| [WorldCourts](./the_junior_associate/scrapers/worldcourts.py) | International | International Court Cases | ✅ Active |
+| [Supreme Court of India](./the_junior_associate/scrapers/supremecourt_india.py) | India | Official Supreme Court | ✅ Active |
+| [Kenya Law](./the_junior_associate/scrapers/kenya_law.py) | Kenya | Kenyan Court Cases | ✅ Active |
+| [Supreme Court of Japan](./the_junior_associate/scrapers/supremecourt_japan.py) | Japan | Japanese Supreme Court | ✅ Active |
+| [ICC Legal Tools](./the_junior_associate/scrapers/legal_tools.py) | International | International Criminal Law | ✅ Active |
