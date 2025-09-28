@@ -230,3 +230,7 @@ with IndianKanoonScraper() as scraper:
 | [Kenya Law](./the_junior_associate/scrapers/kenya_law.py) | Kenya | Kenyan Court Cases | ✅ Active |
 | [Supreme Court of Japan](./the_junior_associate/scrapers/supremecourt_japan.py) | Japan | Japanese Supreme Court | ✅ Active |
 | [ICC Legal Tools](./the_junior_associate/scrapers/legal_tools.py) | International | International Criminal Law | ✅ Active |
+
+## Also see
+
+* [`kite`](https://github.com/gongahkia/kite): Helper Functions Library for Legal Technologists
