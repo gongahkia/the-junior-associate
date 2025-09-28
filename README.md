@@ -2,7 +2,7 @@
 
 # `The Junior Associate`
 
-`The Junior Associate` is a [complete Python library](#architecture) that provides a [bundle of scrapers](#usage) for legal case law from [various jurisdictions](#support) worldwide.
+A [complete Python library](#architecture) that provides a [bundle of scrapers](#usage) for legal case law from [various jurisdictions](#support) worldwide.
 
 ## Stack
 
